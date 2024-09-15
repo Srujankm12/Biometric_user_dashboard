@@ -16,8 +16,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         emit(AuthLoadingState());
       if(event.username.isEmpty && event.password.isEmpty){
-        print("hello"+event.username);
-        print("jain"+event.password);
         emit(AuthErrorState(error: "Username and Password is required"));
         return;
       }
@@ -31,7 +29,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       if(jsonResponse.statusCode == 200){
         box.put("token", response["data"]);
         final Map<String , dynamic> data = JwtDecoder.decode(response["data"]);
-        box.put("user_id" , data["user_id"]);
+        box.put("user_id" , data["id"]);
         box.put("user_name" , data["user_name"]);
         box.close();
         emit(AuthSuccessState());

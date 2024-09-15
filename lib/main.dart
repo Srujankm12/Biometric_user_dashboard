@@ -1,5 +1,4 @@
 import 'package:application/core/themes/themes.dart';
-import 'package:application/feature/auth/pages/login_page.dart';
 import 'package:application/generated_routes.dart';
 import 'package:flutter/material.dart';
 import 'package:hive/hive.dart';

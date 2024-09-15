@@ -7,5 +7,8 @@ class AppTheme{
     scaffoldBackgroundColor: AppColors.whiteColor,
     cardColor: AppColors.whiteColor,
     hoverColor: AppColors.transparentColor,
+    dividerTheme:const DividerThemeData(
+      color: AppColors.transparentColor,
+    )
   );
 }
