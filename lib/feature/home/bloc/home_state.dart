@@ -18,4 +18,4 @@ final class HomeMachinesFetchFailureState extends HomeState{
 }
 
 
-final class HomeMachinesLoadingState extends HomeState{}
+final class HomeMachinesLogoutState extends HomeState{}

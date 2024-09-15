@@ -5,3 +5,6 @@ sealed class HomeEvent {}
 
 
 class HomeFetchMachinesEvent extends HomeEvent{}
+
+
+class HomeLogoutEvent extends HomeEvent{}
