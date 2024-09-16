@@ -17,3 +17,12 @@ class RegisterStudentEvent extends RegisterEvent {
     required this.unitID,
   });
 }
+
+class FetchMachinesEvent extends RegisterEvent{}
+
+class FetchStudentUnitIdEvent extends RegisterEvent{
+  final String unitID;
+  FetchStudentUnitIdEvent({required this.unitID});
+}
+
+class FetchComPortsEvent extends RegisterEvent{}

@@ -87,8 +87,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         "hello",
                         "hii",
                       ],
-                      onPressed: (){
-
+                      onChanged: (p0) {
+                        
                       },
                     ),
                     CustomDropDownMenu(
@@ -96,8 +96,8 @@ class _RegisterPageState extends State<RegisterPage> {
                         "hello",
                         "hii",
                       ],
-                      onPressed: (){
-
+                      onChanged: (p0) {
+                        
                       },
                     ),
                     CustomDropDownMenu(
@@ -105,7 +105,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         "COM3",
                         "COM4",
                       ],
-                      onPressed: (){
+                      onChanged: (p0) {
                         
                       },
                     ),

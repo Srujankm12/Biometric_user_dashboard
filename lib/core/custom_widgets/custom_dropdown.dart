@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 
 class CustomDropDownMenu extends StatefulWidget {
   final List<String> data;
-  final VoidCallback onPressed;
-  const CustomDropDownMenu({super.key, required this.data , required this.onPressed});
+  final Function(String?) onChanged;
+  const CustomDropDownMenu({super.key, required this.data, required this.onChanged});
 
   @override
   State<CustomDropDownMenu> createState() => _CustomDropDownMenuState();
@@ -33,7 +33,6 @@ class _CustomDropDownMenuState extends State<CustomDropDownMenu> {
         border: Border.all(color: Colors.grey.shade300),
       ),
       child: DropdownButtonFormField<String>(
-        onTap: widget.onPressed,
         borderRadius: BorderRadius.circular(10),
         dropdownColor: Colors.white,
         value: dropDownValue,
@@ -54,6 +53,7 @@ class _CustomDropDownMenuState extends State<CustomDropDownMenu> {
           setState(() {
             if (newValue != null) {
               dropDownValue = newValue;
+              widget.onChanged(newValue);
             }
           });
         },

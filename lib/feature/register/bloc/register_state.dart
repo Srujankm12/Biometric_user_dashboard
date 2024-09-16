@@ -21,3 +21,21 @@ final class RegisterSuccessState extends RegisterState{
   final String message;
   RegisterSuccessState({required this.message});
 }
+
+// Class To Fetch Units
+final class FetchMachinesSuccessState extends RegisterState{
+  final List<String> data;
+  FetchMachinesSuccessState({required this.data});
+}
+
+// Class To Fetch Student_Units
+final class FetchStudentUnitIdSuccessState extends RegisterState{
+  final List<int> data;
+  FetchStudentUnitIdSuccessState({required this.data});
+}
+
+// Class To Fetch Ports
+final class FetchAllPortsSuccessState extends RegisterState{
+  final List<String> data;
+  FetchAllPortsSuccessState({required this.data});
+}
