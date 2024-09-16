@@ -17,5 +17,3 @@ final class HomeMachinesFetchFailureState extends HomeState{
   HomeMachinesFetchFailureState({required this.err});
 }
 
-
-final class HomeMachinesLogoutState extends HomeState{}

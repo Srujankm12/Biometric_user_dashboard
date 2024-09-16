@@ -2,6 +2,7 @@ import 'package:application/feature/auth/bloc/auth_bloc.dart';
 import 'package:application/feature/home/bloc/home_bloc.dart';
 import 'package:application/feature/home/pages/home_page.dart';
 import 'package:application/feature/auth/pages/login_page.dart';
+import 'package:application/feature/register/pages/register_student_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -20,6 +21,13 @@ class Routes {
           builder: (context) => BlocProvider(
             create: (context) => HomeBloc(),
             child: const HomePage(),
+          ),
+        );
+        case "/register":
+        return MaterialPageRoute(
+          builder: (context) => BlocProvider(
+            create: (context) => HomeBloc(),
+            child: const RegisterPage(),
           ),
         );
     }

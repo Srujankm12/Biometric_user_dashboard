@@ -37,6 +37,10 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     });
     on<HomeLogoutEvent>((event , emit) async {
       var box = await Hive.openBox("authtoken");
+      box.delete("token");
+      box.delete("user_id");
+      box.delete("user_name");
+      box.close();
     });
   }
 }

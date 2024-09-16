@@ -56,6 +56,9 @@ class _HomePageState extends State<HomePage> {
               height: 15,
             ),
             ListTile(
+              onTap: () {
+                Navigator.pushNamed(context, "/register");
+              },
               leading: const Icon(
                 Icons.people,
                 color: Colors.black,
@@ -77,6 +80,12 @@ class _HomePageState extends State<HomePage> {
               height: 10,
             ),
             ListTile(
+              onTap: () {
+                BlocProvider.of<HomeBloc>(context).add(
+                  HomeLogoutEvent(),
+                );
+                Navigator.pushReplacementNamed(context, "/login");
+              },
               leading: const Icon(
                 Icons.logout,
                 color: Colors.black,
