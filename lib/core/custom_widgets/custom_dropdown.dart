@@ -1,30 +1,63 @@
 import 'package:flutter/material.dart';
 
-
-
-class DropdownMenuExample extends StatefulWidget {
-  final List<String>list;
-  const DropdownMenuExample({super.key, required this.list});
+class CustomDropDownMenu extends StatefulWidget {
+  final List<String> data;
+  final VoidCallback onPressed;
+  const CustomDropDownMenu({super.key, required this.data , required this.onPressed});
 
   @override
-  State<DropdownMenuExample> createState() => _DropdownMenuExampleState();
+  State<CustomDropDownMenu> createState() => _CustomDropDownMenuState();
 }
 
-class _DropdownMenuExampleState extends State<DropdownMenuExample> {
-  String dropdownValue = list.first;
+class _CustomDropDownMenuState extends State<CustomDropDownMenu> {
+  late String dropDownValue;
+
+  @override
+  void initState() {
+    super.initState();
+    // Initialize the default value to the first item in the list or any valid value
+    if (widget.data.isNotEmpty) {
+      dropDownValue = widget.data.first;
+    } else {
+      dropDownValue = "Select Machine Below"; // Default value if list is empty
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    return DropdownMenu<String>(
-      initialSelection: widget.list.first,
-      onSelected: (String? value) {
-        // This is called when the user selects an item.
-        setState(() {
-          dropdownValue = value!;
-        });
-      },
-      dropdownMenuEntries: widget.list.map<DropdownMenuEntry<String>>((String value) {
-        return DropdownMenuEntry<String>(value: value, label: value);
-      }).toList(),
+    return Container(
+      width: 450,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: DropdownButtonFormField<String>(
+        onTap: widget.onPressed,
+        borderRadius: BorderRadius.circular(10),
+        dropdownColor: Colors.white,
+        value: dropDownValue,
+        decoration: const InputDecoration(
+          enabledBorder: InputBorder.none,
+          disabledBorder: InputBorder.none,
+          fillColor: Colors.white,
+          border: InputBorder.none,
+          contentPadding: EdgeInsets.symmetric(horizontal: 16),
+        ),
+        items: widget.data.map((String value) {
+          return DropdownMenuItem<String>(
+            value: value,
+            child: Text(value),
+          );
+        }).toList(),
+        onChanged: (String? newValue) {
+          setState(() {
+            if (newValue != null) {
+              dropDownValue = newValue;
+            }
+          });
+        },
+      ),
     );
   }
 }
