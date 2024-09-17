@@ -16,8 +16,9 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   final TextEditingController _nameController = TextEditingController();
-  String dropDownValue = "Hello"; // Ensure this matches one of the item values
-
+  String unitId = "";
+  String studentUnitId = "";
+  String ports = "";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -82,31 +83,67 @@ class _RegisterPageState extends State<RegisterPage> {
                       controller: _nameController,
                       isPasswordField: false,
                     ),
-                    CustomDropDownMenu(
-                      data: [
-                        "hello",
-                        "hii",
-                      ],
-                      onChanged: (p0) {
-                        
+                    BlocBuilder<RegisterBloc, RegisterState>(
+                      builder: (context, state) {
+                        if (state is FetchMachinesSuccessState) {
+                          return CustomDropDownMenu(
+                            data: state.data,
+                            onChanged: (p0) {
+                              unitId = p0!;
+                            },
+                          );
+                        }
+                        return Container(
+                          width: 400,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.grey.shade200,
+                          ),
+                          child: Text(unitId),
+                        );
                       },
                     ),
-                    CustomDropDownMenu(
-                      data: [
-                        "hello",
-                        "hii",
-                      ],
-                      onChanged: (p0) {
-                        
+                    BlocBuilder<RegisterBloc, RegisterState>(
+                      builder: (context, state) {
+                        if (state is FetchStudentUnitIdSuccessState) {
+                          return CustomDropDownMenu(
+                            data: state.data,
+                            onChanged: (p0) {
+                              studentUnitId = p0!;
+                            },
+                          );
+                        }
+                        return Container(
+                          width: 400,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.grey.shade200,
+                          ),
+                          child: Text(unitId),
+                        );
                       },
                     ),
-                    CustomDropDownMenu(
-                      data: [
-                        "COM3",
-                        "COM4",
-                      ],
-                      onChanged: (p0) {
-                        
+                    BlocBuilder<RegisterBloc, RegisterState>(
+                      builder: (context, state) {
+                        if(state is FetchAllPortsSuccessState){
+                          return CustomDropDownMenu(
+                          data: state.data,
+                          onChanged: (p0) {
+                            ports = p0!;
+                          },
+                        );
+                        }
+                        return Container(
+                          width: 400,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(10),
+                            color: Colors.grey.shade200,
+                          ),
+                          child: Text(unitId),
+                        );
                       },
                     ),
                     SizedBox(
@@ -114,9 +151,6 @@ class _RegisterPageState extends State<RegisterPage> {
                       height: 44,
                       child: ElevatedButton(
                         onPressed: () {
-                          BlocProvider.of<RegisterBloc>(context).add(
-                            RegisterStudentEvent(studentName: "", studentUSN: "", studentDepartment: "", studentUnitId: "", unitID: "")
-                          );
                           setState(() {
                             CustomFingerprintDialog.dialog(context);
                           });

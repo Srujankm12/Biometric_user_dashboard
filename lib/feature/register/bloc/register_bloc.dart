@@ -44,7 +44,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         },),);
         var response = jsonDecode(jsonResponse.body);
         if(jsonResponse.statusCode == 200){
-          List<int> studentUnitID = [];
+          List<String> studentUnitID = [];
           int same = 0;
           for(int i = 0 ; i < response['data'].length ; i++){
             for(int j = 0 ; j <= 256 ; j++){
@@ -54,7 +54,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
               }
             }
             if(same == 0){
-              studentUnitID.add(int.parse(response['data'][i]['student_unit_id']));
+              studentUnitID.add(response['data'][i]['student_unit_id']);
               same = 0;
             }
             same = 0;
@@ -75,6 +75,39 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         }
         emit(FetchAllPortsSuccessState(data: serialPorts));
       } catch (e) {
+        emit(RegisterFailureState(err: e.toString()));
+      }
+    });
+    on<RegisterStudentEvent>((event , emit) async {
+      try{
+        emit(RegisterLoadingState());
+        var port = SerialPort(event.port);
+        String fingerprintData = "";
+        if(!port.openReadWrite()){
+          emit(RegisterFailureState(err: "Unable to open port..."));
+          return;
+        }
+        final reader = SerialPortReader(port);
+        reader.stream.listen((data){
+          fingerprintData = utf8.decode(data);
+        });
+        var jsonReponse = await http.post(Uri.parse(HttpRoutes.registerStudent),body: jsonEncode(
+          {
+            "student_unit_id": event.studentUnitId,
+            "unit_id": event.unitID,
+            "student_name": event.studentName,
+            "student_usn": event.studentUSN,
+            "department": event.studentDepartment,
+            "fingerprint": fingerprintData,
+          }
+        ));
+        var response = jsonDecode(jsonReponse.body);
+        if(jsonReponse.statusCode == 200){
+          emit(RegisterSuccessState(message: response['message']));
+          return;
+        }
+        emit(RegisterFailureState(err: response['message']));
+      }catch(e){
         emit(RegisterFailureState(err: e.toString()));
       }
     });

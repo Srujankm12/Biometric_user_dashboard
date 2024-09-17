@@ -30,7 +30,7 @@ final class FetchMachinesSuccessState extends RegisterState{
 
 // Class To Fetch Student_Units
 final class FetchStudentUnitIdSuccessState extends RegisterState{
-  final List<int> data;
+  final List<String> data;
   FetchStudentUnitIdSuccessState({required this.data});
 }
 
