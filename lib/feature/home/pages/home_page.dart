@@ -146,7 +146,9 @@ class _HomePageState extends State<HomePage> {
                         return CustomMachineCard(
                           machineID: state.getMachines[index]["unit_id"],
                           status: state.getMachines[index]["online"],
-                          onPressed: () {},
+                          onPressed: () {
+                            Navigator.pushNamed(context, '/details' , arguments: DetailsArguments(unitId: state.getMachines[index]['unit_id']));
+                          },
                         );
                       },
                       itemCount: state.getMachines.length,
@@ -210,4 +212,9 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+}
+
+class DetailsArguments {
+  final String unitId;
+  DetailsArguments({required this.unitId});
 }

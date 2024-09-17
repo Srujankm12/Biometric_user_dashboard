@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:application/core/routes/routes.dart';
@@ -69,7 +70,6 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     on<FetchComPortsEvent>((event, emit) async {
       try {
         List<String> serialPorts = SerialPort.availablePorts;
-        print(serialPorts);
         if (serialPorts.isEmpty) {
           emit(RegisterFailureState(err: "No Ports Found..."));
         }
@@ -81,32 +81,47 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
     on<RegisterStudentEvent>((event, emit) async {
       try {
         emit(RegisterLoadingState());
-        var port = SerialPort(event.port);
-        String fingerprintData = "";
-        if (!port.openReadWrite()) {
+        final port = SerialPort(event.port);
+
+        if (!port.openRead()) {
+          print("NOOOOOOOO");
           emit(RegisterFailureState(err: "Unable to open port..."));
           return;
         }
         final reader = SerialPortReader(port);
+        String fingerprintData = "";
+        final completer = Completer<void>();
+                  print("here");
         reader.stream.listen((data) {
+                  print("here");
           fingerprintData = utf8.decode(data);
+          print("running...");
+          completer.complete();
+        }, onError: (error) {
+          completer.completeError(error);
         });
-        var jsonReponse = await http.post(Uri.parse(HttpRoutes.registerStudent),
-            body: jsonEncode({
-              "student_unit_id": event.studentUnitId,
-              "unit_id": event.unitID,
-              "student_name": event.studentName,
-              "student_usn": event.studentUSN,
-              "department": event.studentDepartment,
-              "fingerprint": fingerprintData,
-            }));
-        var response = jsonDecode(jsonReponse.body);
-        print(response);
-        if (jsonReponse.statusCode == 200) {
+        await completer.future;
+        port.close();
+        print("complete...");
+        final jsonResponse = await http.post(
+          Uri.parse(HttpRoutes.registerStudent),
+          body: jsonEncode({
+            "student_unit_id": event.studentUnitId,
+            "unit_id": event.unitID,
+            "student_name": event.studentName,
+            "student_usn": event.studentUSN,
+            "department": event.studentDepartment,
+            "fingerprint": fingerprintData,
+          }),
+        );
+
+        final response = jsonDecode(jsonResponse.body);
+
+        if (jsonResponse.statusCode == 200) {
           emit(RegisterSuccessState(message: response['message']));
-          return;
+        } else {
+          emit(RegisterFailureState(err: response['message']));
         }
-        emit(RegisterFailureState(err: response['message']));
       } catch (e) {
         emit(RegisterFailureState(err: e.toString()));
       }

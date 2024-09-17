@@ -1,14 +1,18 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application/feature/auth/bloc/auth_bloc.dart';
+import 'package:application/feature/details/pages/details_page.dart';
 import 'package:application/feature/home/bloc/home_bloc.dart';
 import 'package:application/feature/home/pages/home_page.dart';
 import 'package:application/feature/auth/pages/login_page.dart';
 import 'package:application/feature/register/bloc/register_bloc.dart';
 import 'package:application/feature/register/pages/register_student_page.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 
 class Routes {
   static Route? onGenerate(RouteSettings settings) {
+    // Extract arguments if needed
+    final args = settings.arguments;
+
     switch (settings.name) {
       case "/login":
         return MaterialPageRoute(
@@ -17,20 +21,32 @@ class Routes {
             child: const LoginPage(),
           ),
         );
-        case "/home":
+      case "/home":
         return MaterialPageRoute(
           builder: (context) => BlocProvider(
             create: (context) => HomeBloc(),
             child: const HomePage(),
           ),
         );
-        case "/register":
+      case "/register":
         return MaterialPageRoute(
           builder: (context) => BlocProvider(
             create: (context) => RegisterBloc(),
             child: const RegisterPage(),
           ),
         );
+      case "/details":
+        // Check if arguments are passed
+        if (args is DetailsArguments) {
+          return MaterialPageRoute(
+            builder: (context) => BlocProvider(
+              create: (context) => RegisterBloc(),
+              child: StudentDetails(data: args.unitId), // Pass arguments to the page
+            ),
+          );
+        }
+        // Handle invalid or missing arguments
+        return null;
     }
     return null;
   }
