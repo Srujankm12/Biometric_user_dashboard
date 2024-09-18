@@ -1,3 +1,4 @@
+import 'package:application/feature/details/bloc/details_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:application/feature/auth/bloc/auth_bloc.dart';
@@ -40,7 +41,7 @@ class Routes {
         if (args is DetailsArguments) {
           return MaterialPageRoute(
             builder: (context) => BlocProvider(
-              create: (context) => RegisterBloc(),
+              create: (context) => DetailsBloc(),
               child: StudentDetails(data: args.unitId), // Pass arguments to the page
             ),
           );
