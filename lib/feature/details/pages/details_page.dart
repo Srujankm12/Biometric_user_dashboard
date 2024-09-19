@@ -1,5 +1,7 @@
 import 'package:application/core/custom_widgets/custom_text_field.dart';
 import 'package:application/feature/details/bloc/details_bloc.dart';
+import 'package:application/feature/details/widgets/delete_dialog.dart';
+import 'package:application/feature/details/widgets/update_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -14,6 +16,9 @@ class StudentDetails extends StatefulWidget {
 
 class _StudentDetailsState extends State<StudentDetails> {
   final TextEditingController searchController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController usnController = TextEditingController();
+  final TextEditingController branchController = TextEditingController();
 
   @override
   void initState() {
@@ -25,43 +30,88 @@ class _StudentDetailsState extends State<StudentDetails> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade900,
-      appBar: AppBar(
-        title: Text(
-          "Student Details",
-          style: GoogleFonts.nunito(
-              color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
-        ),
+    return BlocListener<DetailsBloc, DetailsState>(
+      listener: (context, state) {
+        if (state is DeleteStudentFailedState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.error),
+            ),
+          );
+          BlocProvider.of<DetailsBloc>(context).add(
+            FetchAllStudentDetailsEvent(unitId: widget.data),
+          );
+        }
+        if (state is DeleteStudentSuccessState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+            ),
+          );
+          BlocProvider.of<DetailsBloc>(context).add(
+            FetchAllStudentDetailsEvent(unitId: widget.data),
+          );
+        }
+        if (state is DeleteLoadingState) {
+          Navigator.pop(context);
+        }
+        if (state is UpdateStudentFailedState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.error),
+            ),
+          );
+          BlocProvider.of<DetailsBloc>(context).add(
+            FetchAllStudentDetailsEvent(unitId: widget.data),
+          );
+        }
+        if (state is UpdateStudentSuccessState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+            ),
+          );
+          BlocProvider.of<DetailsBloc>(context).add(
+            FetchAllStudentDetailsEvent(unitId: widget.data),
+          );
+        }
+        if (state is UpdateLoadingState) {
+          Navigator.pop(context);
+        }
+      },
+      child: Scaffold(
         backgroundColor: Colors.grey.shade900,
-        iconTheme: const IconThemeData(
-          color: Colors.white,
-          size: 30,
-        ),
-      ),
-      body: Container(
-        padding: const EdgeInsets.all(40),
-        margin: const EdgeInsets.only(top: 2),
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.black),
-          color: Colors.white,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+        appBar: AppBar(
+          title: Text(
+            "Student Details",
+            style: GoogleFonts.nunito(
+                color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+          ),
+          backgroundColor: Colors.grey.shade900,
+          iconTheme: const IconThemeData(
+            color: Colors.white,
+            size: 30,
           ),
         ),
-        child: BlocBuilder<DetailsBloc, DetailsState>(
-          builder: (context, state) {
-            if (state is FetchAllStudentSuccessState) {
-              // Assume state.students is a list of student objects
-              final students = state.data;
+        body: Container(
+          padding: const EdgeInsets.all(40),
+          margin: const EdgeInsets.only(top: 2),
+          width: double.infinity,
+          height: double.infinity,
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black),
+            color: Colors.white,
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(20),
+              topRight: Radius.circular(20),
+            ),
+          ),
+          child: BlocBuilder<DetailsBloc, DetailsState>(
+            builder: (context, state) {
+              if (state is FetchAllStudentSuccessState) {
+                final students = state.data;
 
-              return SizedBox(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                child: Column(
+                return Column(
                   children: [
                     SizedBox(
                       width: MediaQuery.of(context).size.width,
@@ -107,105 +157,144 @@ class _StudentDetailsState extends State<StudentDetails> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width,
+                    Expanded(
                       child: SingleChildScrollView(
-                        child: Table(
-                          columnWidths: const {
-                            0: FixedColumnWidth(100),
-                            1: FixedColumnWidth(100),
-                            2: FixedColumnWidth(100),
-                            3: FixedColumnWidth(150),
-                            4: FixedColumnWidth(150),
-                          },
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            // Header Row
-                            TableRow(
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade200,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
+                            _buildTableHeaderRow(),
+                            Column(
                               children: [
-                                _buildTableHeader('Name'),
-                                _buildTableHeader('USN'),
-                                _buildTableHeader('Branch'),
-                                _buildTableHeader('Operations'),
-                                _buildTableHeader('Logs'),
+                                for (var student in students)
+                                  _buildDataRow(student),
                               ],
                             ),
-                            // Data Rows
-                            ...students.map((student) {
-                              return TableRow(
-                                children: [
-                                  _buildTableCell(student["student_name"]),
-                                  _buildTableCell(student["student_usn"]),
-                                  _buildTableCell(student["department"]),
-                                  _buildOperationsCell(student),
-                                  _buildLogsCell(),
-                                ],
-                              );
-                            }).toList(),
                           ],
                         ),
                       ),
                     ),
                   ],
-                ),
-              );
-            }
+                );
+              }
 
-            if (state is FetchAllStudentFailureState) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(
-                      Icons.wifi_off_rounded,
-                      size: 100,
-                    ),
-                    Text(
-                      state.message,
-                      style: GoogleFonts.nunito(
-                        color: Colors.black,
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold,
+              if (state is FetchAllStudentFailureState) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.wifi_off_rounded,
+                        size: 100,
                       ),
-                    ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        BlocProvider.of<DetailsBloc>(context).add(
-                          FetchAllStudentDetailsEvent(unitId: widget.data),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.black,
-                        shape: const RoundedRectangleBorder(
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(10),
-                          ),
-                        ),
-                      ),
-                      child: Text(
-                        "Retry",
+                      Text(
+                        state.message,
                         style: GoogleFonts.nunito(
-                          color: Colors.white,
+                          color: Colors.black,
+                          fontSize: 30,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {
+                          BlocProvider.of<DetailsBloc>(context).add(
+                            FetchAllStudentDetailsEvent(unitId: widget.data),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.black,
+                          shape: const RoundedRectangleBorder(
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(10),
+                            ),
+                          ),
+                        ),
+                        child: Text(
+                          "Retry",
+                          style: GoogleFonts.nunito(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return const Center(
+                child: CircularProgressIndicator(
+                  color: Colors.black,
                 ),
               );
-            }
-
-            return const Center(
-              child: CircularProgressIndicator(
-                color: Colors.black,
-              ),
-            );
-          },
+            },
+          ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildTableHeaderRow() {
+    return Container(
+      decoration: BoxDecoration(
+          color: Colors.grey.shade200, borderRadius: BorderRadius.circular(10)),
+      width: MediaQuery.of(context).size.width,
+      child: Table(
+        columnWidths: const {
+          0: FixedColumnWidth(100),
+          1: FixedColumnWidth(100),
+          2: FixedColumnWidth(100),
+          3: FixedColumnWidth(150),
+          4: FixedColumnWidth(150),
+        },
+        children: [
+          TableRow(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(10),
+            ),
+            children: [
+              _buildTableHeader('Name'),
+              _buildTableHeader('USN'),
+              _buildTableHeader('Branch'),
+              _buildTableHeader('Operations'),
+              _buildTableHeader('Logs'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDataRow(Map<String, dynamic> student) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      margin: const EdgeInsets.symmetric(vertical: 5), // Even gap between rows
+      child: Table(
+        columnWidths: const {
+          0: FixedColumnWidth(100),
+          1: FixedColumnWidth(100),
+          2: FixedColumnWidth(100),
+          3: FixedColumnWidth(150),
+          4: FixedColumnWidth(150),
+        },
+        children: [
+          TableRow(
+            children: [
+              _buildTableCell(student["student_name"]),
+              _buildTableCell(student["student_usn"]),
+              _buildTableCell(student["department"]),
+              _buildOperationsCell(
+                student["student_id"],
+                student["student_unit_id"],
+                student["student_name"],
+                student["student_usn"],
+                student["department"],
+              ),
+              _buildLogsCell(),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -214,12 +303,14 @@ class _StudentDetailsState extends State<StudentDetails> {
     return Center(
       child: SizedBox(
         height: 40,
-        child: Text(
-          title,
-          style: TextStyle(
-            color: Colors.grey[600],
-            fontSize: 20,
-            fontWeight: FontWeight.w600,
+        child: Center(
+          child: Text(
+            title,
+            style: TextStyle(
+              color: Colors.grey[600],
+              fontSize: 20,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ),
@@ -230,42 +321,67 @@ class _StudentDetailsState extends State<StudentDetails> {
     return Center(
       child: SizedBox(
         height: 50,
-        child: Text(
-          text,
-          style: GoogleFonts.nunito(
-            color: Colors.black,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
+        child: Center(
+          child: Text(
+            text,
+            style: GoogleFonts.nunito(
+              color: Colors.black,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildOperationsCell(List<String> student) {
+  Widget _buildOperationsCell(String studentId, String studentUnitId,
+      String name, String usn, String branch) {
     return Center(
       child: SizedBox(
         height: 50,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            IconButton(
-              onPressed: () {
-                // Edit operation
-              },
-              icon: const Icon(Icons.edit),
-            ),
-            const SizedBox(width: 5),
-            IconButton(
-              onPressed: () {
-                // Delete operation
-              },
-              icon: Icon(
-                Icons.delete,
-                color: Colors.red.shade800,
+        child: Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              IconButton(
+                onPressed: () {
+                  usernameController.text = name;
+                  usnController.text = usn;
+                  branchController.text = branch;
+                  CustomUpdateDialog.showCustomDialog(
+                    context,
+                    () {
+                      BlocProvider.of<DetailsBloc>(context).add(
+                        UpdateStudentEvent(branch: branchController.text, name: usernameController.text, usn: usnController.text , unit: widget.data , studentID: studentId),
+                      );
+                    },
+                    usernameController,
+                    usnController,
+                    branchController,
+                  );
+                },
+                icon: const Icon(Icons.edit),
               ),
-            ),
-          ],
+              const SizedBox(width: 5),
+              IconButton(
+                onPressed: () {
+                  CustomDeleteDialog.showCustomDialog(context, () {
+                    BlocProvider.of<DetailsBloc>(context).add(
+                      DeleteStudentEvent(
+                          studentId: studentId,
+                          studentUnitId: studentUnitId,
+                          unitId: widget.data),
+                    );
+                  });
+                },
+                icon: Icon(
+                  Icons.delete,
+                  color: Colors.red.shade800,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -274,22 +390,24 @@ class _StudentDetailsState extends State<StudentDetails> {
   Widget _buildLogsCell() {
     return Center(
       child: SizedBox(
-        height: 50,
-        child: ElevatedButton(
-          onPressed: () {
-            // View logs operation
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
+        height: 42,
+        child: Center(
+          child: ElevatedButton(
+            onPressed: () {
+              // View logs operation
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.black,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
-          ),
-          child: Text(
-            "View Logs",
-            style: GoogleFonts.nunito(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
+            child: Text(
+              "View Logs",
+              style: GoogleFonts.nunito(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ),
