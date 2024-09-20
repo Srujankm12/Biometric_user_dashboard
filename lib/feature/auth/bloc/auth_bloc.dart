@@ -37,7 +37,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
       emit(AuthErrorState(error: response["message"]));
       } catch (e) {
-        emit(AuthErrorState(error: e.toString()));
+        emit(AuthErrorState(error: "Something Went Wrong Try Again..."));
       }
     });
   }

@@ -38,7 +38,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         }
         emit(RegisterFailureState(err: response['message']));
       } catch (e) {
-        emit(RegisterFailureState(err: e.toString()));
+        emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
       }
     });
     on<FetchStudentUnitIdEvent>((event, emit) async {
@@ -63,19 +63,20 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         }
         emit(RegisterFailureState(err: response['message']));
       } catch (e) {
-        emit(RegisterFailureState(err: e.toString()));
+        emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
       }
     });
 
     on<FetchComPortsEvent>((event, emit) async {
       try {
+        emit(RegisterLoadingState());
         List<String> serialPorts = SerialPort.availablePorts;
         if (serialPorts.isEmpty) {
           emit(RegisterFailureState(err: "No Ports Found..."));
         }
         emit(FetchAllPortsSuccessState(data: serialPorts));
       } catch (e) {
-        emit(RegisterFailureState(err: e.toString()));
+        emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
       }
     });
     on<RegisterStudentEvent>((event, emit) async {
@@ -123,7 +124,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
           emit(RegisterFailureState(err: response['message']));
         }
       } catch (e) {
-        emit(RegisterFailureState(err: e.toString()));
+        emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
       }
     });
   }

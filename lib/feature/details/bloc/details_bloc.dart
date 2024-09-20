@@ -28,7 +28,7 @@ class DetailsBloc extends Bloc<DetailsEvent, DetailsState> {
         }
         emit(FetchAllStudentFailureState(message:  response['message']));
       } catch (e) {
-        emit(FetchAllStudentFailureState(message: e.toString()));
+        emit(FetchAllStudentFailureState(message: "Something Went Wrong Try Again..."));
       }
     });
 
@@ -47,7 +47,7 @@ class DetailsBloc extends Bloc<DetailsEvent, DetailsState> {
           }
           emit(DeleteStudentFailedState(error: response['message']));
       } catch (e) {
-        emit(DeleteStudentFailedState(error: e.toString()));
+        emit(DeleteStudentFailedState(error: "Something Went Wrong Try Again..."));
       }
     });
     on<UpdateStudentEvent>((event , emit) async {
@@ -67,7 +67,7 @@ class DetailsBloc extends Bloc<DetailsEvent, DetailsState> {
           }
           emit(UpdateStudentFailedState(error: response['message']));
       } catch (e) {
-        emit(UpdateStudentFailedState(error: e.toString()));
+        emit(UpdateStudentFailedState(error: "Something Went Wrong Try Again..."));
       }
     });
   }

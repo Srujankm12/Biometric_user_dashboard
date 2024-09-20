@@ -6,4 +6,5 @@ class HttpRoutes{
   static const String registerStudent = "$url/users/registerstudent";
   static const String deleteStudent = "$url/users/deletestudent";
   static const String updateStudent = "$url/users/updatestudent";
+  static const String fetchStudentLogs = "$url/users/studentslog";
 }

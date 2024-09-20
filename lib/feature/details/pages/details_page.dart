@@ -110,6 +110,13 @@ class _StudentDetailsState extends State<StudentDetails> {
             builder: (context, state) {
               if (state is FetchAllStudentSuccessState) {
                 final students = state.data;
+                final query = searchController.text.toLowerCase();
+
+                // Filter students based on the search query
+                final filteredStudents = students.where((student) {
+                  final name = student["student_name"].toLowerCase();
+                  return name.contains(query);
+                }).toList();
 
                 return Column(
                   children: [
@@ -151,6 +158,10 @@ class _StudentDetailsState extends State<StudentDetails> {
                               isObscure: false,
                               controller: searchController,
                               isPasswordField: false,
+                              onChanged: (value) {
+                                setState(
+                                    () {}); // Trigger rebuild on text change
+                              },
                             ),
                           ),
                         ],
@@ -166,7 +177,7 @@ class _StudentDetailsState extends State<StudentDetails> {
                             _buildTableHeaderRow(),
                             Column(
                               children: [
-                                for (var student in students)
+                                for (var student in filteredStudents)
                                   _buildDataRow(student),
                               ],
                             ),
@@ -291,7 +302,7 @@ class _StudentDetailsState extends State<StudentDetails> {
                 student["student_usn"],
                 student["department"],
               ),
-              _buildLogsCell(),
+              _buildLogsCell(student["student_id"] , student['student_name'] , student['student_usn']),
             ],
           ),
         ],
@@ -353,7 +364,13 @@ class _StudentDetailsState extends State<StudentDetails> {
                     context,
                     () {
                       BlocProvider.of<DetailsBloc>(context).add(
-                        UpdateStudentEvent(branch: branchController.text, name: usernameController.text, usn: usnController.text , unit: widget.data , studentID: studentId),
+                        UpdateStudentEvent(
+                          branch: branchController.text,
+                          name: usernameController.text,
+                          usn: usnController.text,
+                          unit: widget.data,
+                          studentID: studentId,
+                        ),
                       );
                     },
                     usernameController,
@@ -369,9 +386,10 @@ class _StudentDetailsState extends State<StudentDetails> {
                   CustomDeleteDialog.showCustomDialog(context, () {
                     BlocProvider.of<DetailsBloc>(context).add(
                       DeleteStudentEvent(
-                          studentId: studentId,
-                          studentUnitId: studentUnitId,
-                          unitId: widget.data),
+                        studentId: studentId,
+                        studentUnitId: studentUnitId,
+                        unitId: widget.data,
+                      ),
                     );
                   });
                 },
@@ -387,14 +405,23 @@ class _StudentDetailsState extends State<StudentDetails> {
     );
   }
 
-  Widget _buildLogsCell() {
+  Widget _buildLogsCell(
+      String studentId, String studentName, String studentUsn) {
     return Center(
       child: SizedBox(
         height: 42,
         child: Center(
           child: ElevatedButton(
             onPressed: () {
-              // View logs operation
+              Navigator.pushNamed(
+                context,
+                "/logs",
+                arguments: LogsArguments(
+                  studentId: studentId,
+                  studentName: studentName,
+                  studentUsn: studentUsn,
+                ),
+              );
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.black,
@@ -414,4 +441,14 @@ class _StudentDetailsState extends State<StudentDetails> {
       ),
     );
   }
+}
+
+class LogsArguments {
+  final String studentId;
+  final String studentName;
+  final String studentUsn;
+  LogsArguments(
+      {required this.studentId,
+      required this.studentName,
+      required this.studentUsn});
 }

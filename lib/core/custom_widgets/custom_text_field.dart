@@ -4,11 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 // ignore: must_be_immutable
 class CustomTextField extends StatefulWidget {
   final IconData prefixIcon;
+  final ValueChanged ? onChanged;
   final String hintText;
   bool isObscure;
   final bool isPasswordField;
   final TextEditingController controller;
-  CustomTextField({super.key , required this.prefixIcon , required this.hintText ,required this.isObscure  , required this.controller , required this.isPasswordField});
+  CustomTextField({super.key , required this.prefixIcon , required this.hintText ,required this.isObscure, this.onChanged  , required this.controller , required this.isPasswordField});
 
   @override
   State<CustomTextField> createState() => _CustomTextFieldState();
@@ -18,6 +19,7 @@ class _CustomTextFieldState extends State<CustomTextField> {
   @override
   Widget build(BuildContext context) {
     return TextField(
+      onChanged: widget.onChanged,
       controller: widget.controller,
       style:GoogleFonts.nunito(
         fontWeight: FontWeight.w600
