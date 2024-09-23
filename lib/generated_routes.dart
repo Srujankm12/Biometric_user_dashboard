@@ -1,4 +1,5 @@
 import 'package:application/feature/details/bloc/details_bloc.dart';
+import 'package:application/feature/download/pages/download_page.dart';
 import 'package:application/feature/logs/bloc/logs_bloc.dart';
 import 'package:application/feature/logs/pages/logs_page.dart';
 import 'package:flutter/material.dart';
@@ -58,8 +59,15 @@ class Routes {
             ),
           );
         }
+
+        case "/download":
+          return MaterialPageRoute(
+            builder: (context) => BlocProvider(
+            create: (context) => AuthBloc(),
+            child: const DownloadPage(),
+          ),
+        );
         // Handle invalid or missing arguments
-        return null;
     }
     return null;
   }

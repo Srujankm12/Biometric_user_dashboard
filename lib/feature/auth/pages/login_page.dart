@@ -91,6 +91,7 @@ class _LoginPageState extends State<LoginPage> {
                           child: state is AuthLoadingState
                               ? const CircularProgressIndicator(
                                   color: Colors.white,
+                                  strokeCap: StrokeCap.round,
                                 )
                               : Text(
                                   "Login",

@@ -237,6 +237,7 @@ class _StudentDetailsState extends State<StudentDetails> {
               return const Center(
                 child: CircularProgressIndicator(
                   color: Colors.black,
+                  strokeCap: StrokeCap.round,
                 ),
               );
             },

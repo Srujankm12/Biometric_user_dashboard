@@ -39,3 +39,9 @@ final class FetchAllPortsSuccessState extends RegisterState{
   final List<String> data;
   FetchAllPortsSuccessState({required this.data});
 }
+
+final class RegisterAcknowledgmentState extends RegisterState {
+  final String message;
+  
+  RegisterAcknowledgmentState({required this.message});
+}

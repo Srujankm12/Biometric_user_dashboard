@@ -24,9 +24,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   void initState() {
-    BlocProvider.of<RegisterBloc>(context).add(
-      FetchMachinesEvent(),
-    );
+    BlocProvider.of<RegisterBloc>(context).add(FetchMachinesEvent());
     super.initState();
   }
 
@@ -40,6 +38,12 @@ class _RegisterPageState extends State<RegisterPage> {
               content: Text(state.err),
             ),
           );
+        } else if (state is RegisterAcknowledgmentState) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(state.message),
+            ),
+          );
         }
       },
       child: Scaffold(
@@ -48,7 +52,10 @@ class _RegisterPageState extends State<RegisterPage> {
           title: Text(
             "Register Student",
             style: GoogleFonts.nunito(
-                color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+              color: Colors.white,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           backgroundColor: Colors.grey.shade900,
           iconTheme: const IconThemeData(
@@ -76,7 +83,7 @@ class _RegisterPageState extends State<RegisterPage> {
                 color: Colors.white,
                 child: BlocBuilder<RegisterBloc, RegisterState>(
                   builder: (context, state) {
-                    if(state is RegisterLoadingState){
+                    if (state is RegisterLoadingState) {
                       return const Center(
                         child: CircularProgressIndicator(
                           color: Colors.black,
@@ -134,13 +141,15 @@ class _RegisterPageState extends State<RegisterPage> {
                                   color: Colors.grey.shade200,
                                 ),
                                 child: Center(
-                                    child: Text(
-                                  unitId,
-                                  style: GoogleFonts.nunito(
+                                  child: Text(
+                                    unitId,
+                                    style: GoogleFonts.nunito(
                                       color: Colors.grey,
                                       fontSize: 16,
-                                      fontWeight: FontWeight.w500),
-                                )),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
                               );
                             },
                           ),
@@ -165,13 +174,15 @@ class _RegisterPageState extends State<RegisterPage> {
                                   color: Colors.grey.shade200,
                                 ),
                                 child: Center(
-                                    child: Text(
-                                  studentUnitId,
-                                  style: GoogleFonts.nunito(
+                                  child: Text(
+                                    studentUnitId,
+                                    style: GoogleFonts.nunito(
                                       color: Colors.grey,
                                       fontSize: 16,
-                                      fontWeight: FontWeight.w500),
-                                )),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
                               );
                             },
                           ),
@@ -193,13 +204,15 @@ class _RegisterPageState extends State<RegisterPage> {
                                   color: Colors.grey.shade200,
                                 ),
                                 child: Center(
-                                    child: Text(
-                                  ports,
-                                  style: GoogleFonts.nunito(
+                                  child: Text(
+                                    ports,
+                                    style: GoogleFonts.nunito(
                                       color: Colors.grey,
                                       fontSize: 16,
-                                      fontWeight: FontWeight.w500),
-                                )),
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ),
                               );
                             },
                           ),
@@ -214,13 +227,11 @@ class _RegisterPageState extends State<RegisterPage> {
                                       setState(() {
                                         CustomFingerprintDialog.dialog(context);
                                       });
-                                      BlocProvider.of<RegisterBloc>(context)
-                                          .add(
+                                      BlocProvider.of<RegisterBloc>(context).add(
                                         RegisterStudentEvent(
                                           studentName: _nameController.text,
                                           studentUSN: _usnController.text,
-                                          studentDepartment:
-                                              _branchController.text,
+                                          studentDepartment: _branchController.text,
                                           studentUnitId: studentUnitId,
                                           unitID: unitId,
                                           fingerprint: "",
@@ -231,8 +242,8 @@ class _RegisterPageState extends State<RegisterPage> {
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.black,
                                       shape: RoundedRectangleBorder(
-                                          borderRadius:
-                                              BorderRadius.circular(10)),
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
                                     ),
                                     child: Text(
                                       "Take Fingerprint",
@@ -256,9 +267,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                   child: Text(
                                     "Take Fingerprint",
                                     style: GoogleFonts.nunito(
-                                        color: Colors.grey.shade100,
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w500),
+                                      color: Colors.grey.shade100,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               );

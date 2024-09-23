@@ -181,6 +181,7 @@ class _LogsPageState extends State<LogsPage> {
             return const Center(
               child: CircularProgressIndicator(
                 color: Colors.black,
+                strokeCap: StrokeCap.round,
               ),
             );
           },

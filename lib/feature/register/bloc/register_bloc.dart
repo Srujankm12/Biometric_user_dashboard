@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:typed_data';
 
 import 'package:application/core/routes/routes.dart';
 import 'package:flutter_libserialport/flutter_libserialport.dart';
@@ -21,11 +22,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         box.close();
         var jsonResponse = await http.post(
           Uri.parse(HttpRoutes.fetchMachines),
-          body: jsonEncode(
-            {
-              "user_id": userId,
-            },
-          ),
+          body: jsonEncode({"user_id": userId}),
         );
         var response = jsonDecode(jsonResponse.body);
         if (jsonResponse.statusCode == 200) {
@@ -41,6 +38,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
       }
     });
+
     on<FetchStudentUnitIdEvent>((event, emit) async {
       try {
         emit(RegisterLoadingState());
@@ -58,7 +56,6 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
           List<String> studentUnitID =
               allNumbers.map((id) => id.toString()).toList();
           emit(FetchStudentUnitIdSuccessState(data: studentUnitID));
-
           return;
         }
         emit(RegisterFailureState(err: response['message']));
@@ -79,31 +76,65 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
       }
     });
+
     on<RegisterStudentEvent>((event, emit) async {
       try {
         emit(RegisterLoadingState());
+
         final port = SerialPort(event.port);
 
         if (!port.openRead()) {
-          print("NOOOOOOOO");
           emit(RegisterFailureState(err: "Unable to open port..."));
           return;
         }
+
         final reader = SerialPortReader(port);
         String fingerprintData = "";
         final completer = Completer<void>();
-                  print("here");
-        reader.stream.listen((data) {
-                  print("here");
-          fingerprintData = utf8.decode(data);
-          print("running...");
-          completer.complete();
+
+        // Listen to port data
+        reader.stream.listen((data) async {
+          var response = jsonDecode(utf8.decode(data));
+          print(response);
+          if (response['error_status'] == '0') {
+            switch (response['message_type']) {
+              case '0':
+                emit(RegisterAcknowledgmentState(message: "First fingerprint captured. Please place the second finger."));
+                await sendControlCommand(port, 1);
+                break;
+
+              case '1':
+                emit(RegisterAcknowledgmentState(message: "Second fingerprint captured. Saving data..."));
+                await sendControlCommand(port, 2);
+                break;
+
+              case '2':
+                emit(RegisterAcknowledgmentState(message: "Fingerprint data saved. Retrieving data..."));
+                await sendControlCommand(port, 3);
+                break;
+
+              case '3':
+                // Fingerprint data received
+                fingerprintData = response['fingerprint_data'];
+                completer.complete();
+                emit(RegisterAcknowledgmentState(message: "Fingerprint data successfully retrieved."));
+                break;
+            }
+          } else {
+            completer.completeError("Fingerprint registration error: ${response['error_type']}");
+          }
         }, onError: (error) {
           completer.completeError(error);
         });
+
+        // Start the process by sending command to take first fingerprint
+        emit(RegisterAcknowledgmentState(message: "Starting fingerprint registration..."));
+        await sendControlCommand(port, 0);
         await completer.future;
+
         port.close();
-        print("complete...");
+
+        // Send the collected fingerprint data to the server
         final jsonResponse = await http.post(
           Uri.parse(HttpRoutes.registerStudent),
           body: jsonEncode({
@@ -127,5 +158,10 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
         emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
       }
     });
+  }
+
+  Future<void> sendControlCommand(SerialPort port, int status) async {
+    final command = jsonEncode({"control_status": status});
+    port.write(Uint8List.fromList(utf8.encode(command)));
   }
 }

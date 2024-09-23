@@ -81,6 +81,55 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               onTap: () {
+                Navigator.pushNamed(context, "/download");
+              },
+              leading: const Icon(
+                Icons.download_rounded,
+                color: Colors.black,
+                size: 28,
+              ),
+              title: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Text(
+                  "Download",
+                  style: GoogleFonts.nunito(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              style: ListTileStyle.drawer,
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+            ListTile(
+              onTap: () {
+                BlocProvider.of<HomeBloc>(context).add(
+                  HomeLogoutEvent(),
+                );
+                Navigator.pushReplacementNamed(context, "/login");
+              },
+              leading: const Icon(
+                Icons.more_time_sharp,
+                color: Colors.black,
+                size: 28,
+              ),
+              title: Padding(
+                padding: const EdgeInsets.only(left: 10),
+                child: Text(
+                  "Set Timings",
+                  style: GoogleFonts.nunito(
+                    color: Colors.black,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              style: ListTileStyle.drawer,
+            ),
+            const SizedBox(height: 10,),
+            ListTile(
+              onTap: () {
                 BlocProvider.of<HomeBloc>(context).add(
                   HomeLogoutEvent(),
                 );
@@ -204,6 +253,7 @@ class _HomePageState extends State<HomePage> {
             }
             return const Center(
               child: CircularProgressIndicator(
+                strokeCap: StrokeCap.round,
                 color: Colors.black,
               ),
             );
