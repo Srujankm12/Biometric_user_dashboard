@@ -1,4 +1,3 @@
-import 'package:application/core/custom_widgets/custom_dropdown.dart';
 import 'package:application/core/custom_widgets/custom_text_field.dart';
 import 'package:application/core/themes/colors.dart';
 import 'package:flutter/material.dart';
