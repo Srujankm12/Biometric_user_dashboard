@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:application/core/custom_widgets/custom_text_field.dart';
+import 'package:lottie/lottie.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -14,7 +15,9 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> {
+class _RegisterPageState extends State<RegisterPage>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usnController = TextEditingController();
   final TextEditingController _branchController = TextEditingController();
@@ -26,6 +29,14 @@ class _RegisterPageState extends State<RegisterPage> {
   void initState() {
     BlocProvider.of<RegisterBloc>(context).add(FetchMachinesEvent());
     super.initState();
+    _controller =
+        AnimationController(vsync: this, duration: const Duration(seconds: 5));
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controller.dispose();
   }
 
   @override
@@ -39,6 +50,34 @@ class _RegisterPageState extends State<RegisterPage> {
             ),
           );
         } else if (state is RegisterAcknowledgmentState) {
+          if (state.fingerprintstatus == 1 || state.fingerprintstatus == 2) {
+            Navigator.pop(context);
+            if(state.fingerprintstatus == 1 ){
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    backgroundColor: Colors.white,
+                    surfaceTintColor: Colors.white,
+                    title: Text(
+                      "Successfully Taken Fingerprint",
+                      style: GoogleFonts.varelaRound(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22),
+                    ),
+                    content: LottieBuilder.asset(
+                      "assets/success.json  ",
+                      width: 20,
+                      controller: _controller,
+                    ),
+                  );
+                });
+            }
+          }
+          setState(() {
+            _controller.value = state.fingerprintstatus;
+          });
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -193,45 +232,51 @@ class _RegisterPageState extends State<RegisterPage> {
                                   data: state.data,
                                   onChanged: (p0) {
                                     ports = p0!;
+                                    BlocProvider.of(context).add();
                                   },
                                 );
                               }
-                              return Container(
-                                width: 500,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.grey.shade200,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    ports,
-                                    style: GoogleFonts.nunito(
-                                      color: Colors.grey,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              );
                             },
                           ),
                           BlocBuilder<RegisterBloc, RegisterState>(
                             builder: (context, state) {
-                              if (state is FetchAllPortsSuccessState) {
+                              if (state is ComPortSelectedState) {
                                 return SizedBox(
                                   width: double.infinity,
                                   height: 44,
                                   child: ElevatedButton(
                                     onPressed: () {
                                       setState(() {
-                                        CustomFingerprintDialog.dialog(context);
+                                        showDialog(
+                                            context: context,
+                                            builder: (BuildContext context) {
+                                              return AlertDialog(
+                                                backgroundColor: Colors.white,
+                                                surfaceTintColor: Colors.white,
+                                                title: Text(
+                                                  "Place your finger on Sensor",
+                                                  style:
+                                                      GoogleFonts.varelaRound(
+                                                          color: Colors.black,
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 22),
+                                                ),
+                                                content: LottieBuilder.asset(
+                                                  "assets/Animation.json",
+                                                  width: 20,
+                                                  controller: _controller,
+                                                ),
+                                              );
+                                            });
                                       });
-                                      BlocProvider.of<RegisterBloc>(context).add(
+                                      BlocProvider.of<RegisterBloc>(context)
+                                          .add(
                                         RegisterStudentEvent(
                                           studentName: _nameController.text,
                                           studentUSN: _usnController.text,
-                                          studentDepartment: _branchController.text,
+                                          studentDepartment:
+                                              _branchController.text,
                                           studentUnitId: studentUnitId,
                                           unitID: unitId,
                                           fingerprint: "",

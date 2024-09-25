@@ -1,4 +1,5 @@
 import 'package:application/feature/details/bloc/details_bloc.dart';
+import 'package:application/feature/download/bloc/download_bloc.dart';
 import 'package:application/feature/download/pages/download_page.dart';
 import 'package:application/feature/logs/bloc/logs_bloc.dart';
 import 'package:application/feature/logs/pages/logs_page.dart';
@@ -63,7 +64,7 @@ class Routes {
         case "/download":
           return MaterialPageRoute(
             builder: (context) => BlocProvider(
-            create: (context) => AuthBloc(),
+            create: (context) => DownloadBloc(),
             child: const DownloadPage(),
           ),
         );

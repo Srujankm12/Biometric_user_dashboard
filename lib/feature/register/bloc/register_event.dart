@@ -30,3 +30,10 @@ class FetchStudentUnitIdEvent extends RegisterEvent{
 }
 
 class FetchComPortsEvent extends RegisterEvent{}
+
+class ComPortSelectEvent extends RegisterEvent{
+  final String studentName;
+  final String studentUsn;
+  final String studentBranch;
+  ComPortSelectEvent({required this.studentName, required this.studentUsn, required this.studentBranch});
+}

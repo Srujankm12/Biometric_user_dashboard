@@ -14,8 +14,6 @@ final class RegisterFailureState extends RegisterState{
   RegisterFailureState({required this.err});
 }
 
-final class RegisterTakeFingerState extends RegisterState{}
-
 
 final class RegisterSuccessState extends RegisterState{
   final String message;
@@ -42,6 +40,8 @@ final class FetchAllPortsSuccessState extends RegisterState{
 
 final class RegisterAcknowledgmentState extends RegisterState {
   final String message;
-  
-  RegisterAcknowledgmentState({required this.message});
+  final double fingerprintstatus;
+  RegisterAcknowledgmentState({required this.message , required this.fingerprintstatus});
 }
+
+final class ComPortSelectedState extends RegisterState{}
