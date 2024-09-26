@@ -4,7 +4,7 @@ import 'package:lottie/lottie.dart';
 
 
 class CustomFingerprintDialog{
-  static void dialog(BuildContext context) {
+  static void dialog(BuildContext context , String title , Widget content) {
     showDialog(
       context: context,
       builder: (BuildContext context) {

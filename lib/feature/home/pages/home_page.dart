@@ -28,7 +28,10 @@ class _HomePageState extends State<HomePage> {
         title: Text(
           "Home",
           style: GoogleFonts.nunito(
-              color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+            color: Colors.white,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         backgroundColor: Colors.grey.shade900,
         iconTheme: const IconThemeData(
@@ -127,7 +130,9 @@ class _HomePageState extends State<HomePage> {
               ),
               style: ListTileStyle.drawer,
             ),
-            const SizedBox(height: 10,),
+            const SizedBox(
+              height: 10,
+            ),
             ListTile(
               onTap: () {
                 BlocProvider.of<HomeBloc>(context).add(
@@ -196,7 +201,10 @@ class _HomePageState extends State<HomePage> {
                           machineID: state.getMachines[index]["unit_id"],
                           status: state.getMachines[index]["online"],
                           onPressed: () {
-                            Navigator.pushNamed(context, '/details' , arguments: DetailsArguments(unitId: state.getMachines[index]['unit_id']));
+                            Navigator.pushNamed(context, '/details',
+                                arguments: DetailsArguments(
+                                    unitId: state.getMachines[index]
+                                        ['unit_id']));
                           },
                         );
                       },
@@ -222,9 +230,11 @@ class _HomePageState extends State<HomePage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(height: 20,),
+                    const SizedBox(
+                      height: 20,
+                    ),
                     ElevatedButton(
-                      onPressed: (){
+                      onPressed: () {
                         BlocProvider.of<HomeBloc>(context).add(
                           HomeFetchMachinesEvent(),
                         );

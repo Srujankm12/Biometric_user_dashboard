@@ -68,10 +68,10 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
           emit(RegisterLoadingState());
           List<String> ports = SerialPort.availablePorts;
           if(ports.isEmpty){
-              emit(FetchFingerprintMachineFailureState(errorMessage: "No Ports Found..."));
+              emit(FetchFingerprintMachinePortFailureState(errorMessage: "No Ports Found..."));
               return;
           }
-          emit(FetchFingerprintMachineSuccessState(data: ports));
+          emit(FetchFingerprintMachinePortSuccessState(data: ports));
         } catch (e) {
           emit(FetchFingerprintMachinePortFailureState(errorMessage: "Something went wrong..."));
         }
@@ -148,7 +148,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
                                     fingerprintdata = response['fingerprint_data'];
                                     complete.complete();
                                     port.close();
-                                    emit(RegisterStudentSuccessState());
+                                    emit(RegisterStudentAccnoledgementState(message: "Fingerprint Read Success...", status: 1, animationValue: 0));
                             }
                         } if(response['error_status'] == '1'){
                               emit(RegisterStudentAccnoledgementState(message: "Fingerprint Sensor error please wait...", status: 2, animationValue: 0));

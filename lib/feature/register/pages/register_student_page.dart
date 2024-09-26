@@ -1,10 +1,9 @@
 import 'package:application/core/custom_widgets/custom_dropdown.dart';
-import 'package:application/core/themes/colors.dart';
+import 'package:application/core/custom_widgets/custom_text_field.dart';
 import 'package:application/feature/register/bloc/register_bloc.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:application/core/custom_widgets/custom_text_field.dart';
 import 'package:lottie/lottie.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -14,92 +13,115 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
-class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderStateMixin {
-  
-  // Controllers related to specific widget
+class _RegisterPageState extends State<RegisterPage>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _usnController = TextEditingController();
   final TextEditingController _branchController = TextEditingController();
-  String unitId = "Select the unit";
-  String studentUnitId = "Select any Number";
-  String ports = "Select the Register Port";
-  String header = "";
 
-  // Initial function to execuite before build
+  String unitId = "";
+  String studentUnitId = "";
+  String port = "";
+
   @override
   void initState() {
-    BlocProvider.of<RegisterBloc>(context).add(FetchMachinesEvent());
+    BlocProvider.of<RegisterBloc>(context).add(
+      FetchFingerprintMachinesEvent(),
+    );
     super.initState();
-    _controller =
-        AnimationController(vsync: this, duration: const Duration(seconds: 5));
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(
+        seconds: 20,
+      ),
+    );
   }
 
   @override
   void dispose() {
     super.dispose();
-    _nameController.dispose();
-    _branchController.dispose();
-    _usnController.dispose();
     _controller.dispose();
+    _nameController.dispose();
+    _usnController.dispose();
+    _branchController.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocListener<RegisterBloc, RegisterState>(
       listener: (context, state) {
-        if (state is RegisterFailureState) {
+        if (state is VerifyDetailsFailureState) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(state.err),
+              content: Text(state.errorMessage),
             ),
           );
-          if (state.errTyp == 4) {
-            BlocProvider.of<RegisterBloc>(context).add(FetchComPortsEvent());
-          }
-        } else if (state is RegisterAcknowledgmentState) {
-          if (state.fingerprintstatus == 3) {
-            Navigator.pop(context);
-            showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    backgroundColor: Colors.white,
-                    surfaceTintColor: Colors.white,
-                    title: Text(
-                      "Fingerprint taken successfully",
-                      style: GoogleFonts.varelaRound(
-                          color: Colors.black,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 22),
-                    ),
-                    content: LottieBuilder.asset(
-                      "assets/success.json",
-                      width: 20,
-                      controller: _controller,
-                    ),
-                    actions: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.pushReplacementNamed(context, "/register");
-                        },
-                        child:const Text(
-                          "Done",
-                        ),
-                      ),
-                    ],
-                  );
-                });
-          }
+          BlocProvider.of<RegisterBloc>(context).add(
+            FetchFingerprintMachinePortEvent(),
+          );
+        }
+        if (state is RegisterStudentAccnoledgementState) {
           setState(() {
-            _controller.value = state.fingerprintstatus;
-            header = state.message;
+            _controller.value = state.animationValue;
           });
+        }
+        if (state is VerifyDetailsSuccessState) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return BlocProvider(
+                create: (context) => RegisterBloc(),
+                child: BlocBuilder<RegisterBloc, RegisterState>(
+                  builder: (context, state) {
+                    return AlertDialog(
+                      backgroundColor: Colors.white,
+                      title: Text(
+                        state is RegisterStudentAccnoledgementState
+                            ? state.message
+                            : "Loading...",
+                      ),
+                      content: state is RegisterStudentAccnoledgementState
+                          ? state.status == 0
+                              ? Lottie.asset(
+                                  "assets/Animation.json",
+                                  controller: _controller,
+                                )
+                              : state.status == 1
+                                  ? Lottie.asset("assets/success.json")
+                                  : state.status == 2
+                                      ? Lottie.asset("assets/failure.json")
+                                      : null
+                          : null,
+                      actions: [
+                        ElevatedButton(
+                          onPressed: () {
+                            
+                          },
+                          child: Text(
+                            "Cancel",
+                            style: GoogleFonts.nunito(
+                              color: Colors.black,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              );
+            },
+          );
         }
       },
       child: Scaffold(
-        backgroundColor: Colors.grey.shade900,
         appBar: AppBar(
+          iconTheme: const IconThemeData(
+            color: Colors.white,
+            size: 30,
+          ),
+          backgroundColor: Colors.grey.shade900,
           title: Text(
             "Register Student",
             style: GoogleFonts.nunito(
@@ -108,258 +130,197 @@ class _RegisterPageState extends State<RegisterPage> with SingleTickerProviderSt
               fontWeight: FontWeight.bold,
             ),
           ),
-          backgroundColor: Colors.grey.shade900,
-          iconTheme: const IconThemeData(
-            color: Colors.white,
-            size: 30,
-          ),
         ),
-        body: Container(
-          width: double.infinity,
-          height: double.infinity,
-          decoration: BoxDecoration(
-            border: Border.all(color: Colors.black),
-            color: Colors.white,
-            borderRadius: const BorderRadius.only(
-              topLeft: Radius.circular(20),
-              topRight: Radius.circular(20),
-            ),
-          ),
-          child: Center(
-            child: SizedBox(
-              width: 500,
-              height: 600,
-              child: Card(
-                elevation: 8,
-                color: Colors.white,
+        body: Center(
+          child: SizedBox(
+            width: 500,
+            height: 600,
+            child: Card(
+              color: Colors.white,
+              elevation: 10,
+              child: Padding(
+                padding: const EdgeInsets.all(20),
                 child: BlocBuilder<RegisterBloc, RegisterState>(
                   builder: (context, state) {
                     if (state is RegisterLoadingState) {
                       return const Center(
                         child: CircularProgressIndicator(
                           color: Colors.black,
+                          strokeCap: StrokeCap.round,
+                        ),
+                      );
+                    } else if (state is RegisterStudentFailureState ||
+                        state is FetchFingerprintMachineFailureState ||
+                        state is FetchStudentUnitIdFailureState ||
+                        state is FetchFingerprintMachinePortFailureState) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.wifi_off_rounded,
+                              size: 60,
+                            ),
+                            Text(
+                              state is RegisterStudentFailureState
+                                  ? state.errorMessage
+                                  : state is FetchFingerprintMachineFailureState
+                                      ? state.errorMessage
+                                      : state is FetchStudentUnitIdFailureState
+                                          ? state.errorMessage
+                                          : state is FetchFingerprintMachinePortFailureState
+                                              ? state.errorMessage
+                                              : "Something went wrong...",
+                              style: GoogleFonts.nunito(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                BlocProvider.of<RegisterBloc>(context).add(
+                                  FetchFingerprintMachinesEvent(),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    10,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                "Retry",
+                                style: GoogleFonts.nunito(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       );
                     }
-                    return Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          const Icon(
-                            Icons.fingerprint,
-                            size: 100,
-                          ),
-                          CustomTextField(
-                            prefixIcon: Icons.person,
-                            hintText: "Name",
-                            isObscure: false,
-                            controller: _nameController,
-                            isPasswordField: false,
-                          ),
-                          CustomTextField(
-                            prefixIcon: Icons.numbers,
-                            hintText: "USN",
-                            isObscure: false,
-                            controller: _usnController,
-                            isPasswordField: false,
-                          ),
-                          CustomTextField(
-                            prefixIcon: Icons.book,
-                            hintText: "Department",
-                            isObscure: false,
-                            controller: _branchController,
-                            isPasswordField: false,
-                          ),
-                          BlocBuilder<RegisterBloc, RegisterState>(
-                            builder: (context, state) {
-                              if (state is FetchMachinesSuccessState) {
-                                return CustomDropDownMenu(
-                                  data: state.data,
-                                  onChanged: (p0) {
-                                    unitId = p0!;
-                                    BlocProvider.of<RegisterBloc>(context).add(
-                                      FetchStudentUnitIdEvent(unitID: unitId),
-                                    );
-                                  },
-                                );
-                              }
-                              return Container(
-                                width: 500,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.grey.shade200,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    unitId,
-                                    style: GoogleFonts.nunito(
-                                      color: Colors.grey,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
+                    return Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        const Icon(
+                          Icons.fingerprint_rounded,
+                          size: 100,
+                        ),
+                        CustomTextField(
+                          prefixIcon: Icons.person,
+                          hintText: "Name",
+                          isObscure: false,
+                          controller: _nameController,
+                          isPasswordField: false,
+                        ),
+                        CustomTextField(
+                          prefixIcon: Icons.abc,
+                          hintText: "USN",
+                          isObscure: false,
+                          controller: _usnController,
+                          isPasswordField: false,
+                        ),
+                        CustomTextField(
+                          prefixIcon: Icons.apartment,
+                          hintText: "Department",
+                          isObscure: false,
+                          controller: _branchController,
+                          isPasswordField: false,
+                        ),
+                        BlocBuilder<RegisterBloc, RegisterState>(
+                          builder: (context, state) {
+                            if (state is FetchFingerprintMachineSuccessState) {
+                              return CustomDropDownMenu(
+                                data: state.data,
+                                onChanged: (selected0) {
+                                  unitId = selected0!;
+                                  BlocProvider.of<RegisterBloc>(context).add(
+                                    FetchStudentUnitIdEvent(
+                                      unitId: unitId,
                                     ),
-                                  ),
-                                ),
+                                  );
+                                },
                               );
-                            },
-                          ),
-                          BlocBuilder<RegisterBloc, RegisterState>(
-                            builder: (context, state) {
-                              if (state is FetchStudentUnitIdSuccessState) {
-                                return CustomDropDownMenu(
-                                  data: state.data,
-                                  onChanged: (p0) {
-                                    studentUnitId = p0!;
-                                    BlocProvider.of<RegisterBloc>(context).add(
-                                      FetchComPortsEvent(),
-                                    );
-                                  },
-                                );
-                              }
-                              return Container(
-                                width: 500,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.grey.shade200,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    studentUnitId,
-                                    style: GoogleFonts.nunito(
-                                      color: Colors.grey,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
+                            }
+                            return _containerText(unitId);
+                          },
+                        ),
+                        BlocBuilder<RegisterBloc, RegisterState>(
+                          builder: (context, state) {
+                            if (state is FetchStudentUnitIdSuccessState) {
+                              return CustomDropDownMenu(
+                                data: state.data,
+                                onChanged: (selected1) {
+                                  studentUnitId = selected1!;
+                                  BlocProvider.of<RegisterBloc>(context).add(
+                                    FetchFingerprintMachinePortEvent(),
+                                  );
+                                },
                               );
-                            },
-                          ),
-                          BlocBuilder<RegisterBloc, RegisterState>(
-                            builder: (context, state) {
-                              if (state is FetchAllPortsSuccessState) {
-                                return CustomDropDownMenu(
-                                  data: state.data,
-                                  onChanged: (p0) {
-                                    ports = p0!;
-                                    BlocProvider.of<RegisterBloc>(context).add(
-                                      ComPortSelectEvent(
-                                        studentName: _nameController.text,
-                                        studentUsn: _usnController.text,
-                                        studentBranch: _branchController.text,
-                                      ),
-                                    );
-                                  },
-                                );
-                              }
-                              return Container(
-                                width: 500,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.grey.shade200,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    ports,
-                                    style: GoogleFonts.nunito(
-                                      color: Colors.grey,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
+                            }
+                            return _containerText(studentUnitId);
+                          },
+                        ),
+                        BlocBuilder<RegisterBloc, RegisterState>(
+                          builder: (context, state) {
+                            if (state
+                                is FetchFingerprintMachinePortSuccessState) {
+                              return CustomDropDownMenu(
+                                data: state.data,
+                                onChanged: (selected2) {
+                                  port = selected2!;
+                                  BlocProvider.of<RegisterBloc>(context).add(
+                                    VerifyDetailsEvent(
+                                      port: port,
+                                      studentDepartment: _branchController.text,
+                                      studentName: _nameController.text,
+                                      studentUSN: _usnController.text,
+                                      studentUnitId: studentUnitId,
+                                      unitID: unitId,
                                     ),
-                                  ),
-                                ),
+                                  );
+                                },
                               );
-                            },
-                          ),
-                          BlocBuilder<RegisterBloc, RegisterState>(
-                            builder: (context, state) {
-                              if (state is ComPortSelectedState) {
-                                return SizedBox(
-                                  width: double.infinity,
-                                  height: 44,
-                                  child: ElevatedButton(
-                                    onPressed: () {
-                                      showDialog(
-                                          context: context,
-                                          builder: (BuildContext context) {
-                                            return AlertDialog(
-                                              backgroundColor: Colors.white,
-                                              surfaceTintColor: Colors.white,
-                                              title: Text(
-                                                header,
-                                                style: GoogleFonts.varelaRound(
-                                                    color: Colors.black,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 22),
-                                              ),
-                                              content: LottieBuilder.asset(
-                                                "assets/Animation.json",
-                                                width: 20,
-                                                controller: _controller,
-                                              ),
-                                            );
-                                          });
-                                      BlocProvider.of<RegisterBloc>(context)
-                                          .add(
-                                        RegisterStudentEvent(
-                                          studentName: _nameController.text,
-                                          studentUSN: _usnController.text,
-                                          studentDepartment:
-                                              _branchController.text,
-                                          studentUnitId: studentUnitId,
-                                          unitID: unitId,
-                                          fingerprint: "",
-                                          port: ports,
-                                        ),
-                                      );
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.black,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(10),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      "Take Fingerprint",
-                                      style: GoogleFonts.nunito(
-                                        color: AppColors.whiteColor,
-                                        fontSize: 22,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              }
-                              return Container(
-                                width: double.infinity,
-                                height: 44,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: Colors.grey.shade500,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    "Take Fingerprint",
-                                    style: GoogleFonts.nunito(
-                                      color: Colors.grey.shade100,
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        ],
-                      ),
+                            }
+                            return _containerText(port);
+                          },
+                        ),
+                      ],
                     );
                   },
                 ),
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _containerText(String text) {
+    return Container(
+      width: MediaQuery.of(context).size.width,
+      height: 50,
+      decoration: BoxDecoration(
+        color: Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(
+          10,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          text,
+          style: GoogleFonts.nunito(
+            color: Colors.grey.shade700,
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
           ),
         ),
       ),

@@ -10,10 +10,7 @@ class FetchStudentUnitIdEvent extends RegisterEvent {
   FetchStudentUnitIdEvent({required this.unitId});
 }
 
-class FetchFingerprintMachinePortEvent extends RegisterEvent {
-  final String ports;
-  FetchFingerprintMachinePortEvent({required this.ports});
-}
+class FetchFingerprintMachinePortEvent extends RegisterEvent {}
 
 class VerifyDetailsEvent extends RegisterEvent {
   final String studentName;
