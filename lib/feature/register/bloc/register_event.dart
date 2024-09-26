@@ -3,13 +3,41 @@ part of 'register_bloc.dart';
 @immutable
 sealed class RegisterEvent {}
 
+class FetchFingerprintMachinesEvent extends RegisterEvent {}
+
+class FetchStudentUnitIdEvent extends RegisterEvent {
+  final String unitId;
+  FetchStudentUnitIdEvent({required this.unitId});
+}
+
+class FetchFingerprintMachinePortEvent extends RegisterEvent {
+  final String ports;
+  FetchFingerprintMachinePortEvent({required this.ports});
+}
+
+class VerifyDetailsEvent extends RegisterEvent {
+  final String studentName;
+  final String studentUSN;
+  final String studentDepartment;
+  final String unitID;
+  final String studentUnitId;
+  final String port;
+  VerifyDetailsEvent({
+    required this.port,
+    required this.studentDepartment,
+    required this.studentName,
+    required this.studentUSN,
+    required this.studentUnitId,
+    required this.unitID,
+  });
+}
+
 class RegisterStudentEvent extends RegisterEvent {
   final String studentName;
   final String studentUSN;
   final String studentDepartment;
   final String unitID;
   final String studentUnitId;
-  final String fingerprint;
   final String port;
   RegisterStudentEvent({
     required this.studentName,
@@ -17,23 +45,6 @@ class RegisterStudentEvent extends RegisterEvent {
     required this.studentDepartment,
     required this.studentUnitId,
     required this.unitID,
-    required this.fingerprint,
     required this.port,
   });
-}
-
-class FetchMachinesEvent extends RegisterEvent{}
-
-class FetchStudentUnitIdEvent extends RegisterEvent{
-  final String unitID;
-  FetchStudentUnitIdEvent({required this.unitID});
-}
-
-class FetchComPortsEvent extends RegisterEvent{}
-
-class ComPortSelectEvent extends RegisterEvent{
-  final String studentName;
-  final String studentUsn;
-  final String studentBranch;
-  ComPortSelectEvent({required this.studentName, required this.studentUsn, required this.studentBranch});
 }

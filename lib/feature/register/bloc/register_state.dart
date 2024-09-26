@@ -5,43 +5,64 @@ sealed class RegisterState {}
 
 final class RegisterInitial extends RegisterState {}
 
-
 final class RegisterLoadingState extends RegisterState{}
 
 
-final class RegisterFailureState extends RegisterState{
-  final String err;
-  RegisterFailureState({required this.err});
-}
-
-
-final class RegisterSuccessState extends RegisterState{
-  final String message;
-  RegisterSuccessState({required this.message});
-}
-
-// Class To Fetch Units
-final class FetchMachinesSuccessState extends RegisterState{
+final class FetchFingerprintMachineSuccessState extends RegisterState{
   final List<String> data;
-  FetchMachinesSuccessState({required this.data});
+  FetchFingerprintMachineSuccessState({required this.data});
 }
 
-// Class To Fetch Student_Units
+final class FetchFingerprintMachineFailureState extends RegisterState{
+  final String errorMessage;
+  FetchFingerprintMachineFailureState({required this.errorMessage});
+}
+
+
 final class FetchStudentUnitIdSuccessState extends RegisterState{
   final List<String> data;
   FetchStudentUnitIdSuccessState({required this.data});
 }
 
-// Class To Fetch Ports
-final class FetchAllPortsSuccessState extends RegisterState{
+final class FetchStudentUnitIdFailureState extends RegisterState{
+  final String errorMessage;
+  FetchStudentUnitIdFailureState({required this.errorMessage});
+}
+
+final class FetchFingerprintMachinePortSuccessState extends RegisterState{
   final List<String> data;
-  FetchAllPortsSuccessState({required this.data});
+  FetchFingerprintMachinePortSuccessState({required this.data});
 }
 
-final class RegisterAcknowledgmentState extends RegisterState {
+
+final class FetchFingerprintMachinePortFailureState extends RegisterState{
+  final String errorMessage;
+  FetchFingerprintMachinePortFailureState({required this.errorMessage});
+}
+
+
+final class VerifyDetailsSuccessState extends RegisterState{}
+
+
+final class VerifyDetailsFailureState extends RegisterState{
+  final String errorMessage;
+  VerifyDetailsFailureState({required this.errorMessage});
+}
+
+final class RegisterStudentSuccessState extends RegisterState{}
+
+final class RegisterStudentAccnoledgementState extends RegisterState{
+  final double animationValue;
+  final int status;
   final String message;
-  final double fingerprintstatus;
-  RegisterAcknowledgmentState({required this.message , required this.fingerprintstatus});
+  RegisterStudentAccnoledgementState({required this.message , required this.status , required this.animationValue});
 }
 
-final class ComPortSelectedState extends RegisterState{}
+final class RegisterStudentFailureState extends RegisterState{
+  final String errorMessage;
+  RegisterStudentFailureState({required this.errorMessage});
+}
+
+
+
+

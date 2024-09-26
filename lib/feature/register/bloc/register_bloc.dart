@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:application/core/routes/routes.dart';
@@ -14,216 +15,178 @@ part 'register_state.dart';
 
 class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
   RegisterBloc() : super(RegisterInitial()) {
-    on<FetchMachinesEvent>((event, emit) async {
+    on<FetchFingerprintMachinesEvent>((event , emit) async {
       try {
         emit(RegisterLoadingState());
-        var box = await Hive.openBox("authtoken");
-        var userId = box.get("user_id");
-        box.close();
-        var jsonResponse = await http.post(
-          Uri.parse(HttpRoutes.fetchMachines),
-          body: jsonEncode({"user_id": userId}),
-        );
-        var response = jsonDecode(jsonResponse.body);
-        if (jsonResponse.statusCode == 200) {
-          List<String> unitId = [];
-          for (int i = 0; i < response['data'].length; i++) {
-            unitId.add(response['data'][i]['unit_id']);
-          }
-          emit(FetchMachinesSuccessState(data: unitId));
-          return;
-        }
-        emit(RegisterFailureState(err: response['message']));
-      } catch (e) {
-        emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
-      }
-    });
-
-    on<FetchStudentUnitIdEvent>((event, emit) async {
-      try {
-        emit(RegisterLoadingState());
-        var jsonResponse = await http.post(
-          Uri.parse(HttpRoutes.fetchStudents),
-          body: jsonEncode({"unit_id": event.unitID}),
-        );
-        var response = jsonDecode(jsonResponse.body);
-        if (jsonResponse.statusCode == 200) {
-          Set<int> allNumbers = Set<int>.from(List.generate(257, (i) => i));
-          for (var item in response['data']) {
-            int id = int.parse(item['student_unit_id']);
-            allNumbers.remove(id);
-          }
-          List<String> studentUnitID =
-              allNumbers.map((id) => id.toString()).toList();
-          emit(FetchStudentUnitIdSuccessState(data: studentUnitID));
-          return;
-        }
-        emit(RegisterFailureState(err: response['message']));
-      } catch (e) {
-        emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
-      }
-    });
-
-    on<FetchComPortsEvent>((event, emit) async {
-      try {
-        emit(RegisterLoadingState());
-        List<String> serialPorts = SerialPort.availablePorts;
-        if (serialPorts.isEmpty) {
-          emit(RegisterFailureState(err: "No Ports Found..."));
-        }
-        emit(FetchAllPortsSuccessState(data: serialPorts));
-      } catch (e) {
-        emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
-      }
-    });
-
-    on<ComPortSelectEvent>((event , emit) {
-      if(event.studentBranch.isEmpty || event.studentName.isEmpty || event.studentUsn.isEmpty){
-          emit(RegisterFailureState(err: "Please Enter The Form Fields..."));
-          return;
-      }
-        emit(ComPortSelectedState());
-    });
-
-    on<RegisterStudentEvent>((event, emit) async {
-      try {
-        emit(RegisterLoadingState());
-
-        final port = SerialPort(event.port);
-
-        if (!port.openReadWrite()) {
-          emit(RegisterFailureState(err: "Unable to open port..."));
-          return;
-        }
-
-        final reader = SerialPortReader(port);
-        String fingerprintData = "";
-        final completer = Completer<void>();
-
-        var config = port.config;
-        config.baudRate = 115200;
-        config.bits = 8;
-        config.parity = 0;
-        config.stopBits = 1;
-        port.config = config;
-
-        sendControlCommand(port, 0);
-
-        // Buffer to accumulate incoming data
-        StringBuffer buffer = StringBuffer();
-
-        reader.stream.listen((data) async {
-          // Append received data chunk to the buffer
-          buffer.write(utf8.decode(data));
-
-          // Check if the buffer contains a complete message (assumed to end with a newline '\n')
-          if (buffer.toString().contains('\n')) {
-            var messages = buffer
-                .toString()
-                .split('\n'); // Split on newline to handle multiple messages
-
-            for (var message in messages) {
-              if (message.isNotEmpty) {
-                try {
-                  var response = jsonDecode(message.trim());
-
-                  print(response);
-
-                  if (response['error_status'] == '0') {
-                    switch (response['message_type']) {
-                      case '0':
-                        emit(RegisterAcknowledgmentState( message: "First fingerprint successfully read.", fingerprintstatus: 0.12,),);
-                        await sendControlCommand(port, 1);
-                        break;
-                      case '1':
-                        emit(RegisterAcknowledgmentState( message: "Second fingerprint successfully read.", fingerprintstatus: 0.5,),);
-                        await sendControlCommand(port, 2);
-                        break;
-                      case '2':
-                        emit(RegisterAcknowledgmentState( message: "Fingerprint data saved successfully.", fingerprintstatus: 1,),);
-                        await sendControlCommand(port, 3);
-                        break;
-                      case '3':
-                        fingerprintData = response['fingerprint_data'];
-                        completer.complete();
-                        port.close();
-                        emit(RegisterAcknowledgmentState(message:"Fingerprint data successfully retrieved.",fingerprintstatus: 3,),);
-                        break;
-                    }
-                  } else if (response['error_status'] == '1') {
-                    // Handle errors based on error_type
-                    switch (response['error_type']) {
-                      case '0':
-                        emit(RegisterAcknowledgmentState(message: "finger print sensor error", fingerprintstatus: 2));
-                        port.close();
-                        break;
-                      case '1':
-                        emit(RegisterAcknowledgmentState(message: "finger print sensor error", fingerprintstatus: 2));
-                        port.close();
-                        break;
-                      case '2':
-                        emit(RegisterAcknowledgmentState(message: "finger print sensor error", fingerprintstatus: 2));
-                        port.close();
-                        break;
-                      case '4':
-                        emit(RegisterAcknowledgmentState(message: "finger print sensor error", fingerprintstatus: 2));
-                        port.close();
-                        break;
-                      case '5':
-                        emit(RegisterAcknowledgmentState(message: "finger print sensor error", fingerprintstatus: 2));
-                        port.close();
-                        break;
-                      case '6':
-                        emit(RegisterAcknowledgmentState(message: "finger print sensor error", fingerprintstatus: 2));
-                        port.close();
-                        break;
-                      case '3':
-                        emit(RegisterAcknowledgmentState(message: "finger print sensor error", fingerprintstatus: 2));
-                        port.close();
-                        break;
-                      default: 
-                        emit(RegisterAcknowledgmentState(message: "finger print sensor error", fingerprintstatus: 2));
-                        port.close();
-                        break;
-                    }
-                  }
-                } catch (e) {
-                  emit(RegisterAcknowledgmentState(message: "finger print sensor error", fingerprintstatus: 2,),);
-                  port.close();
-                }
-              }
+        var box = await Hive.openBox('authtoken');
+        String userID = box.get('user_id');
+        final jsonResponse = await http.post(Uri.parse(HttpRoutes.fetchMachines) , body: jsonEncode({"user_id": userID}));
+        final response = jsonDecode(jsonResponse.body);
+        if(jsonResponse.statusCode == 200 && response['data'] != null){
+            List<String> data = [];
+            for(int i = 0 ; i < response['data'].length ; i++){
+              data.add(response['data'][i]['unit_id']);
             }
-            // Clear the buffer after processing the message
-            buffer.clear();
-          }
-        });
-        await completer.future;
+            emit(FetchFingerprintMachineSuccessState(data: data));
+            return;
+        }
+        emit(FetchFingerprintMachineFailureState(errorMessage: response['message']));
+      } catch (e) {
+        emit(FetchFingerprintMachineFailureState(errorMessage: "Something went wrong..."));
+      }
+    });
 
-        // Send the collected fingerprint data to the server
-        final jsonResponse = await http.post(
-          Uri.parse(HttpRoutes.registerStudent),
-          body: jsonEncode({
-            "student_unit_id": event.studentUnitId,
-            "unit_id": event.unitID,
-            "student_name": event.studentName,
-            "student_usn": event.studentUSN,
-            "department": event.studentDepartment,
-            "fingerprint_data": fingerprintData,
+
+    on<FetchStudentUnitIdEvent>((event , emit) async {
+      try{
+          emit(RegisterLoadingState());
+          final jsonResponse = await http.post(Uri.parse(HttpRoutes.fetchStudents) , body: jsonEncode({"unit_id": event.unitId}));
+          final response = jsonDecode(jsonResponse.body);
+          if(jsonResponse.statusCode == 200){
+              List<String> generated = List.generate(257, (i) => "$i");
+              generated.remove("0");
+              if(response['data'] == null){
+                  emit(FetchStudentUnitIdSuccessState(data: generated));
+                  return;
+              }
+              for(var i in response['data']){
+                String existing = i['student_unit_id'];
+                generated.remove(existing);
+              }
+              emit(FetchStudentUnitIdSuccessState(data: generated));
+              return;
+          }
+          emit(FetchStudentUnitIdFailureState(errorMessage: response['message']));
+      }catch(e){
+        emit(FetchStudentUnitIdFailureState(errorMessage: "Something went wrong..."));
+      }
+    });
+
+
+    on<FetchFingerprintMachinePortEvent>((event , emit) async {
+        try {
+          emit(RegisterLoadingState());
+          List<String> ports = SerialPort.availablePorts;
+          if(ports.isEmpty){
+              emit(FetchFingerprintMachineFailureState(errorMessage: "No Ports Found..."));
+              return;
+          }
+          emit(FetchFingerprintMachineSuccessState(data: ports));
+        } catch (e) {
+          emit(FetchFingerprintMachinePortFailureState(errorMessage: "Something went wrong..."));
+        }
+    });
+
+    on<VerifyDetailsEvent>((event , emit) async {
+      try {
+          emit(RegisterLoadingState());
+          if(event.port.isEmpty || event.studentDepartment.isEmpty || event.studentName.isEmpty || event.studentUSN.isEmpty || event.studentUnitId.isEmpty || event.unitID.isEmpty){
+              emit(VerifyDetailsFailureState(errorMessage: "Enter all the field Values"));
+              return;
+          }
+          emit(VerifyDetailsSuccessState());
+      } catch (e) {
+        emit(VerifyDetailsFailureState(errorMessage: "Something went wrong..."));
+      }
+    });
+
+    on<RegisterStudentEvent>((event , emit) async {
+        try {
+            emit(RegisterLoadingState());
+            final port = SerialPort(event.port);
+            if(!port.openReadWrite()){
+                emit(RegisterStudentFailureState(errorMessage: "Unable to open port..."));
+                return;
+            }
+            final reader = SerialPortReader(port);
+            final complete = Completer<void>();
+            var fingerprintdata = "";
+
+            var config = port.config;
+            config.baudRate = 115200;
+            config.bits = 8;
+            config.stopBits = 1;
+            config.parity = 0;
+            port.config = config;
+
+            sendControlCommand(port, 0);
+            StringBuffer buffer = StringBuffer();
+
+
+            reader.stream.listen((data) async {
+
+                buffer.write(utf8.decode(data));
+
+                if(buffer.toString().contains('\n')){
+
+                  var messages = buffer.toString().split('\n');
+
+                  for(var message in messages){
+
+                      try {
+
+                        var response = jsonDecode(message.trim());
+                        print(response);
+                        if(response['error_status'] == '0'){
+                            switch(response['message_type']){
+                                case '0':
+                                    emit(RegisterStudentAccnoledgementState(message: "Place your finger on the Sensor...", status: 0 , animationValue: 0.0));
+                                    sendControlCommand(port, 1);
+                                    sleep(const Duration(seconds: 2));
+                                    break;
+                                case '1':
+                                    emit(RegisterStudentAccnoledgementState(message: "Place your finger on the Sensor Again...", status: 0, animationValue: 0.18));
+                                    sendControlCommand(port, 2);
+                                    sleep(const Duration(seconds: 2));
+                                    break;
+                                case '2':
+                                    emit(RegisterStudentAccnoledgementState(message: "Fingerprint Read Success...", status: 1, animationValue: 0));
+                                    sendControlCommand(port, 3);
+                                    sleep(const Duration(seconds: 2));
+                                    break;
+                                case '3':
+                                    fingerprintdata = response['fingerprint_data'];
+                                    complete.complete();
+                                    port.close();
+                                    emit(RegisterStudentSuccessState());
+                            }
+                        } if(response['error_status'] == '1'){
+                              emit(RegisterStudentAccnoledgementState(message: "Fingerprint Sensor error please wait...", status: 2, animationValue: 0));
+                              sleep(const Duration(seconds: 2));
+                              sendControlCommand(port, 0);
+                        }
+                      } catch (e) {
+                              emit(RegisterStudentAccnoledgementState(message: "Fingerprint Sensor error please wait...", status: 2, animationValue: 0));
+                              sleep(const Duration(seconds: 2));
+                              sendControlCommand(port, 0);
+                      }
+                  }
+                  buffer.clear();
+                }
+            });
+            await complete.future;
+            final jsonResponse = await http.post(
+                  Uri.parse(HttpRoutes.registerStudent),
+                  body: jsonEncode({
+                    "student_unit_id": event.studentUnitId,
+                    "unit_id": event.unitID,
+                    "student_name": event.studentName,
+                    "student_usn": event.studentUSN,
+                    "department": event.studentDepartment,
+                    "fingerprint_data": fingerprintdata,
           }),
         );
-
         final response = jsonDecode(jsonResponse.body);
-
-        if (jsonResponse.statusCode == 200) {
-          emit(RegisterSuccessState(message: response['message']));
-        } else {
-          emit(RegisterFailureState(err: response['message']));
+        if(jsonResponse.statusCode == 200){
+            emit(RegisterStudentSuccessState());
+            return;
         }
-      } catch (e) {
-        emit(RegisterFailureState(err: "Something Went Wrong Try Again..."));
-      }
+        emit(RegisterStudentFailureState(errorMessage: response['message']));
+        } catch (e) {
+          emit(RegisterStudentFailureState(errorMessage: "Something went wrong..."));
+        }
     });
-  }
+}
   Future<void> sendControlCommand(SerialPort port, int status) async {
     final command = jsonEncode({"control_status": status});
     port.write(Uint8List.fromList(utf8.encode(command)));

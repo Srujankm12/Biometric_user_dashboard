@@ -144,17 +144,20 @@ class _DownloadPageState extends State<DownloadPage> {
                         ],
                       );
                     } else if (state is FetchBiometricUnitsFailedState) {
-                      return Column(
-                        children: [
-                          const Icon(Icons.file_download_off_outlined),
-                          Text(
-                            state.message,
-                            style: GoogleFonts.nunito(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.file_download_off_outlined , size: 30,),
+                            Text(
+                              state.message,
+                              style: GoogleFonts.nunito(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       );
                     }
                     return const Center(

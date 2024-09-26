@@ -52,9 +52,6 @@ class DownloadBloc extends Bloc<DownloadEvent, DownloadState> {
         var box = await Hive.openBox('authtoken');
         var userId = box.get('user_id');
         box.close();
-        print(event.startDate);
-        print(event.unitId);
-        print(userId);
         var response = await http.post(Uri.parse(HttpRoutes.downloadExcel) , body: jsonEncode({
           "start_date": event.startDate,
           "end_date": event.endDate,
