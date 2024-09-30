@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:application/core/routes/routes.dart';
@@ -109,7 +108,8 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
             config.parity = 0;
             port.config = config;
 
-            sendControlCommand(port, 0);
+             emit(RegisterStudentAccnoledgementState(message: "Place your finger on the Sensor...", status: 0 , animationValue: 0.0));
+            await sendControlCommand(port, 0);
             StringBuffer buffer = StringBuffer();
 
 
@@ -122,6 +122,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
                   var messages = buffer.toString().split('\n');
 
                   for(var message in messages){
+                    if(message.isNotEmpty){
 
                       try {
 
@@ -130,41 +131,46 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
                         if(response['error_status'] == '0'){
                             switch(response['message_type']){
                                 case '0':
-                                    emit(RegisterStudentAccnoledgementState(message: "Place your finger on the Sensor...", status: 0 , animationValue: 0.0));
-                                    sendControlCommand(port, 1);
-                                    sleep(const Duration(seconds: 2));
+                                    emit(RegisterStudentAccnoledgementState(message: "Place your finger on the Sensor...", status: 0 , animationValue: 0.12));
+                                    await sendControlCommand(port, 1);
+                                    // sleep(const Duration(seconds: 2));
                                     break;
                                 case '1':
-                                    emit(RegisterStudentAccnoledgementState(message: "Place your finger on the Sensor Again...", status: 0, animationValue: 0.18));
-                                    sendControlCommand(port, 2);
-                                    sleep(const Duration(seconds: 2));
+                                    emit(RegisterStudentAccnoledgementState(message: "Place your finger on the Sensor Again...", status: 0, animationValue: 0.23));
+                                    await sendControlCommand(port, 2);
+                                    // sleep(const Duration(seconds: 2));
                                     break;
                                 case '2':
-                                    emit(RegisterStudentAccnoledgementState(message: "Fingerprint Read Success...", status: 1, animationValue: 0));
-                                    sendControlCommand(port, 3);
-                                    sleep(const Duration(seconds: 2));
+                                    emit(RegisterStudentAccnoledgementState(message: "Fingerprint Read Success...", status: 1, animationValue: 1));
+                                    await sendControlCommand(port, 3);
+                                    // sleep(const Duration(seconds: 2));
                                     break;
                                 case '3':
                                     fingerprintdata = response['fingerprint_data'];
                                     complete.complete();
-                                    port.close();
-                                    emit(RegisterStudentAccnoledgementState(message: "Fingerprint Read Success...", status: 1, animationValue: 0));
+                                    emit(RegisterStudentAccnoledgementState(message: "Fingerprint Read Success...", status: 1, animationValue: 1));
                             }
                         } if(response['error_status'] == '1'){
-                              emit(RegisterStudentAccnoledgementState(message: "Fingerprint Sensor error please wait...", status: 2, animationValue: 0));
-                              sleep(const Duration(seconds: 2));
-                              sendControlCommand(port, 0);
+                              emit(RegisterStudentAccnoledgementState(message: "Fingerprint Sensor error please wait...", status: 0, animationValue: 0));
+                              // sleep(const Duration(seconds: 2));
+                              await sendControlCommand(port, 0);
                         }
                       } catch (e) {
-                              emit(RegisterStudentAccnoledgementState(message: "Fingerprint Sensor error please wait...", status: 2, animationValue: 0));
-                              sleep(const Duration(seconds: 2));
+                        print(e.toString());
+                              emit(RegisterStudentAccnoledgementState(message: "Fingerprint Sensor error please wait...", status: 0, animationValue: 0));
+                              // sleep(const Duration(seconds: 2));
                               sendControlCommand(port, 0);
                       }
                   }
                   buffer.clear();
+                  }
                 }
             });
             await complete.future;
+            if(port.isOpen){
+              port.flush();
+              port.close();
+            }
             final jsonResponse = await http.post(
                   Uri.parse(HttpRoutes.registerStudent),
                   body: jsonEncode({

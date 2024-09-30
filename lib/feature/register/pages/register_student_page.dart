@@ -61,52 +61,84 @@ class _RegisterPageState extends State<RegisterPage>
             FetchFingerprintMachinePortEvent(),
           );
         }
-        if (state is RegisterStudentAccnoledgementState) {
-          setState(() {
-            _controller.value = state.animationValue;
-          });
-        }
         if (state is VerifyDetailsSuccessState) {
           showDialog(
             context: context,
             builder: (BuildContext context) {
               return BlocProvider(
                 create: (context) => RegisterBloc(),
-                child: BlocBuilder<RegisterBloc, RegisterState>(
-                  builder: (context, state) {
-                    return AlertDialog(
-                      backgroundColor: Colors.white,
-                      title: Text(
-                        state is RegisterStudentAccnoledgementState
-                            ? state.message
-                            : "Loading...",
-                      ),
-                      content: state is RegisterStudentAccnoledgementState
-                          ? state.status == 0
-                              ? Lottie.asset(
-                                  "assets/Animation.json",
-                                  controller: _controller,
-                                )
-                              : state.status == 1
-                                  ? Lottie.asset("assets/success.json")
-                                  : state.status == 2
-                                      ? Lottie.asset("assets/failure.json")
-                                      : null
-                          : null,
-                      actions: [
-                        ElevatedButton(
-                          onPressed: () {
-                            
-                          },
-                          child: Text(
-                            "Cancel",
-                            style: GoogleFonts.nunito(
-                              color: Colors.black,
-                              fontWeight: FontWeight.w600,
-                            ),
+                child: StatefulBuilder(
+                  builder: (BuildContext context, StateSetter setState) {
+                    return BlocListener<RegisterBloc, RegisterState>(
+                      listener: (context, state) {
+                        if (state is RegisterStudentSuccessState) {
+                          Navigator.pop(context);
+                          Navigator.pushReplacementNamed(context, "/register");
+                        }
+                        if (state is RegisterStudentAccnoledgementState) {
+                          setState(() {
+                            _controller.value = state.animationValue;
+                          });
+                        }
+                      },
+                      child: SizedBox(
+                        height: 200,
+                        width: 200,
+                        child: AlertDialog(
+                          backgroundColor: Colors.white,
+                          title: BlocBuilder<RegisterBloc, RegisterState>(
+                            builder: (context, state) {
+                              if (state is RegisterStudentAccnoledgementState) {
+                                return Text(state.message);
+                              }
+                              return const Text("Start taking fingerprint");
+                            },
+                          ),
+                          content: BlocBuilder<RegisterBloc, RegisterState>(
+                            builder: (context, state) {
+                              if (state is RegisterStudentAccnoledgementState) {
+                                if (state.status == 0) {
+                                  return Lottie.asset("assets/Animation.json",
+                                      controller: _controller, width: 120);
+                                } else if (state.status == 1) {
+                                  return Lottie.asset("assets/success.json",
+                                      width: 120, controller: _controller);
+                                }
+                              }
+                              return ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.black,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(
+                                      10,
+                                    ),
+                                  ),
+                                ),
+                                onPressed: () {
+                                  BlocProvider.of<RegisterBloc>(context).add(
+                                    RegisterStudentEvent(
+                                      studentName: _nameController.text,
+                                      studentUSN: _usnController.text,
+                                      studentDepartment: _branchController.text,
+                                      studentUnitId: studentUnitId,
+                                      unitID: unitId,
+                                      port: port,
+                                    ),
+                                  );
+                                },
+                                child: Text(
+                                  "Start",
+                                  style: GoogleFonts.nunito(
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ),
-                      ],
+                      ),
                     );
                   },
                 ),
@@ -142,6 +174,52 @@ class _RegisterPageState extends State<RegisterPage>
                 padding: const EdgeInsets.all(20),
                 child: BlocBuilder<RegisterBloc, RegisterState>(
                   builder: (context, state) {
+                    if (state is FetchFingerprintMachinePortFailureState) {
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.wifi_off_rounded,
+                              size: 60,
+                            ),
+                            Text(
+                              state.errorMessage,
+                              style: GoogleFonts.nunito(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
+                            ),
+                            const SizedBox(
+                              height: 10,
+                            ),
+                            ElevatedButton(
+                              onPressed: () {
+                                BlocProvider.of<RegisterBloc>(context).add(
+                                  FetchFingerprintMachinePortEvent(),
+                                );
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.black,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(
+                                    10,
+                                  ),
+                                ),
+                              ),
+                              child: Text(
+                                "Retry",
+                                style: GoogleFonts.nunito(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }
                     if (state is RegisterLoadingState) {
                       return const Center(
                         child: CircularProgressIndicator(
@@ -151,8 +229,7 @@ class _RegisterPageState extends State<RegisterPage>
                       );
                     } else if (state is RegisterStudentFailureState ||
                         state is FetchFingerprintMachineFailureState ||
-                        state is FetchStudentUnitIdFailureState ||
-                        state is FetchFingerprintMachinePortFailureState) {
+                        state is FetchStudentUnitIdFailureState) {
                       return Center(
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
@@ -168,9 +245,7 @@ class _RegisterPageState extends State<RegisterPage>
                                       ? state.errorMessage
                                       : state is FetchStudentUnitIdFailureState
                                           ? state.errorMessage
-                                          : state is FetchFingerprintMachinePortFailureState
-                                              ? state.errorMessage
-                                              : "Something went wrong...",
+                                          : "Something went wrong...",
                               style: GoogleFonts.nunito(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -323,6 +398,23 @@ class _RegisterPageState extends State<RegisterPage>
             fontWeight: FontWeight.w600,
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _acknoledgementState(String asset) {
+    return Center(
+      child: Lottie.asset(asset),
+    );
+  }
+
+  Widget _dialogHeader(String header) {
+    return Text(
+      header,
+      style: GoogleFonts.nunito(
+        color: Colors.black,
+        fontSize: 16,
+        fontWeight: FontWeight.bold,
       ),
     );
   }
