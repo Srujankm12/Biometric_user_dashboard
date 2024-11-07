@@ -15,6 +15,8 @@ final class FetchAllStudentFailureState extends DetailsState{
   FetchAllStudentFailureState({required this.message});
 }
 
+final class FetchAllStudentDetailsLoadingState extends DetailsState{}
+
 final class DeleteStudentSuccessState extends DetailsState{
   final String message;
   DeleteStudentSuccessState({required this.message});

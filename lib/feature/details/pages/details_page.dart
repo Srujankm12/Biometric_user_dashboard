@@ -15,22 +15,26 @@ class StudentDetails extends StatefulWidget {
 }
 
 class _StudentDetailsState extends State<StudentDetails> {
+  // Controllers For The Input Tag
   final TextEditingController searchController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController usnController = TextEditingController();
   final TextEditingController branchController = TextEditingController();
 
+  // Initial Function Runs Before The Build Function
   @override
   void initState() {
+    super.initState();
     BlocProvider.of<DetailsBloc>(context).add(
       FetchAllStudentDetailsEvent(unitId: widget.data),
     );
-    super.initState();
   }
 
+  /// The main [build] Function
   @override
   Widget build(BuildContext context) {
     return BlocListener<DetailsBloc, DetailsState>(
+      /// [state] matters a lot
       listener: (context, state) {
         if (state is DeleteStudentFailedState) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -41,8 +45,7 @@ class _StudentDetailsState extends State<StudentDetails> {
           BlocProvider.of<DetailsBloc>(context).add(
             FetchAllStudentDetailsEvent(unitId: widget.data),
           );
-        }
-        if (state is DeleteStudentSuccessState) {
+        } else if (state is DeleteStudentSuccessState) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -51,11 +54,9 @@ class _StudentDetailsState extends State<StudentDetails> {
           BlocProvider.of<DetailsBloc>(context).add(
             FetchAllStudentDetailsEvent(unitId: widget.data),
           );
-        }
-        if (state is DeleteLoadingState) {
+        } else if (state is DeleteLoadingState) {
           Navigator.pop(context);
-        }
-        if (state is UpdateStudentFailedState) {
+        } else if (state is UpdateStudentFailedState) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.error),
@@ -64,8 +65,7 @@ class _StudentDetailsState extends State<StudentDetails> {
           BlocProvider.of<DetailsBloc>(context).add(
             FetchAllStudentDetailsEvent(unitId: widget.data),
           );
-        }
-        if (state is UpdateStudentSuccessState) {
+        } else if (state is UpdateStudentSuccessState) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(state.message),
@@ -74,8 +74,7 @@ class _StudentDetailsState extends State<StudentDetails> {
           BlocProvider.of<DetailsBloc>(context).add(
             FetchAllStudentDetailsEvent(unitId: widget.data),
           );
-        }
-        if (state is UpdateLoadingState) {
+        } else if (state is UpdateLoadingState) {
           Navigator.pop(context);
         }
       },
@@ -187,9 +186,7 @@ class _StudentDetailsState extends State<StudentDetails> {
                     ),
                   ],
                 );
-              }
-
-              if (state is FetchAllStudentFailureState) {
+              } else if (state is FetchAllStudentFailureState) {
                 return Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -230,6 +227,13 @@ class _StudentDetailsState extends State<StudentDetails> {
                         ),
                       ),
                     ],
+                  ),
+                );
+              } else if (state is FetchAllStudentDetailsLoadingState) {
+                return const Center(
+                  child: CircularProgressIndicator(
+                    color: Colors.black,
+                    strokeCap: StrokeCap.round,
                   ),
                 );
               }
@@ -303,7 +307,8 @@ class _StudentDetailsState extends State<StudentDetails> {
                 student["student_usn"],
                 student["department"],
               ),
-              _buildLogsCell(student["student_id"] , student['student_name'] , student['student_usn']),
+              _buildLogsCell(student["student_id"], student['student_name'],
+                  student['student_usn']),
             ],
           ),
         ],

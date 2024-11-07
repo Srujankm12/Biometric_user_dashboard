@@ -12,6 +12,7 @@ part 'details_state.dart';
 class DetailsBloc extends Bloc<DetailsEvent, DetailsState> {
   DetailsBloc() : super(DetailsInitial()) {
     on<FetchAllStudentDetailsEvent>((event, emit) async {
+      emit(FetchAllStudentDetailsLoadingState());
       try {
         var jsonResponse = await http.post(
           Uri.parse(HttpRoutes.fetchStudents),

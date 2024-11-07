@@ -110,25 +110,27 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
 
              emit(RegisterStudentAccnoledgementState(message: "Place your finger on the Sensor...", status: 0 , animationValue: 0.0));
             await sendControlCommand(port, 0);
-            StringBuffer buffer = StringBuffer();
+            String jsonMessage = "";
 
 
             reader.stream.listen((data) async {
 
-                buffer.write(utf8.decode(data));
 
-                if(buffer.toString().contains('\n')){
+              
+                  
+                  String rawString = String.fromCharCodes(data);
+                  // print("raw string : $rawString");
+                  RegExp exp = RegExp(r'[{}[\]"0-9,:#a-zA-Z_ ]');
+                  String filterString = rawString.split('').where((char) => exp.hasMatch(char)).join('');
+                  jsonMessage+=filterString;
 
-                  var messages = buffer.toString().split('\n');
-
-                  for(var message in messages){
-                    if(message.isNotEmpty){
-
+              if(jsonMessage.endsWith('#')){
+                    var mes = jsonMessage.split('#')[0];
+                    var response = jsonDecode(mes);
+                    print(response);
                       try {
-
-                        var response = jsonDecode(message.trim());
-                        print(response);
-                        if(response['error_status'] == '0'){
+                      
+                        if(response['error_status'] == "0"){
                             switch(response['message_type']){
                                 case '0':
                                     emit(RegisterStudentAccnoledgementState(message: "Place your finger on the Sensor...", status: 0 , animationValue: 0.12));
@@ -161,10 +163,9 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
                               // sleep(const Duration(seconds: 2));
                               sendControlCommand(port, 0);
                       }
-                  }
-                  buffer.clear();
-                  }
+                      jsonMessage = "";
                 }
+            
             });
             await complete.future;
             if(port.isOpen){
@@ -195,6 +196,7 @@ class RegisterBloc extends Bloc<RegisterEvent, RegisterState> {
 }
   Future<void> sendControlCommand(SerialPort port, int status) async {
     final command = jsonEncode({"control_status": status});
-    port.write(Uint8List.fromList(utf8.encode(command)));
+    port.write(Uint8List.fromList(utf8.encode("$command#")));
   }
 }
+

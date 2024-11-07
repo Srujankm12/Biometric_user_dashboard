@@ -13,14 +13,17 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+
+  // Controllers To Read The Data From The User
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthSuccessState) {
-          Navigator.pushNamed(context, "/home");
+          Navigator.pushReplacementNamed(context, "/home");
         }
         if (state is AuthErrorState) {
           ScaffoldMessenger.of(context).showSnackBar(
